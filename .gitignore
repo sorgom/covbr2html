@@ -5,6 +5,7 @@ tmp_*.*
 
 # temporary ignored
 Makefile
+*.make
 *.sln
 *.vcxproj
 *.vcxproj.*

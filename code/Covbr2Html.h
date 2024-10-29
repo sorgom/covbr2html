@@ -28,10 +28,6 @@ private:
     {
         return std::regex_replace(src, re, rep);
     }
-    inline static std::string repl(const std::regex& re, const std::string& rep, const std::string& src)
-    {
-        return std::regex_replace(src, re, rep);
-    }
 };
 
 

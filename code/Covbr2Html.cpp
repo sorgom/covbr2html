@@ -12,19 +12,20 @@ using fpath = std::filesystem::path;
 
 bool Covbr2Html::convert(const CONST_C_STRING covbrFile)
 {
-    // removal of multiple files
-    static const string rBeg    = "(?:^|(\\n))";
-    static const string rFile   = "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):";
-    static const string rEclip  = "(?: +\\.\\.\\.\\n)?";
-    static const string rDouble = rBeg + rEclip + "(?:" + rFile + "\\n)*(" + rFile + ")";
-    static const string rSpc    = string("\\s+(\\n" + rFile + ")");
-
-    static const regex reDouble(rDouble);
-    static const regex reSpc(rSpc);
-    // static const regex reTail(rTail);
-    static const regex reFile(rBeg + '(' + rFile + ')');
-    static const regex reLead("^\\s+");
-    static const regex reTail(rFile + "\\s+$");
+    //  txt file cleanup
+    static const regex reDouble(
+        "(?:^|(\\n))"
+        "(?: +\\.\\.\\.\\n)?"
+        "(?:" "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):" "\\n)*"
+        "("   "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):" ")"
+    );
+    static const regex reSpc("\\s+(\\n" "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):" ")");
+    static const regex reFile(
+        "(?:^|(\\n))" 
+        "(" "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):" ")"
+    );
+    // static const regex reLead("^\\s+");
+    static const regex reTail("(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):" "\\s+$");
 
     // html conversion
     static const regex reAmp("&");
@@ -32,30 +33,25 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrFile)
     static const regex reGt(">");
 
     // OK cases
-    static const regex re_tf(rBeg + "( *)(TF|tf)(?: (.*))?");
-    static const regex re_X(rBeg + "( *)X  (.*)");
+    static const regex re_tf("(?:^|(\\n))( *)(TF|tf)(?: (.*))?");
+    static const regex re_X ("(?:^|(\\n))( *)X  (.*)");
 
     // NOK cases
-    static const string rNok = rBeg + "( *)--&gt;";
-    static const regex re_x(rNok + " (.*)");
-    static const regex re_t(rNok + "t (.*)");
-    static const regex re_f(rNok + "f (.*)");
-    static const regex re_T(rNok + "T (.*)");
-    static const regex re_F(rNok + "F (.*)");
+    static const regex re_x("(?:^|(\\n))( *)--&gt; (.*)");
+    static const regex re_t("(?:^|(\\n))( *)--&gt;t (.*)");
+    static const regex re_f("(?:^|(\\n))( *)--&gt;f (.*)");
+    static const regex re_T("(?:^|(\\n))( *)--&gt;T (.*)");
+    static const regex re_F("(?:^|(\\n))( *)--&gt;F (.*)");
 
-    //  replacements
-    static const string bOk = "$1<span>$2";
-    static const string bNok = "$1<span class=x>$2";
-    static const string es = " $3</span>";
 
-    static const string rep_tf = bOk + "<u>$3</u> $4</span>";
-    static const string rep_X  = bOk + "<u>&gt;&gt;</u>" + es;
+    static const CONST_C_STRING rep_tf = "$1<span>$2<u>$3</u> $4</span>";
+    static const CONST_C_STRING rep_X  = "$1<span>$2<u>&gt;&gt;</u> $3</span>";
 
-    static const string rep_x = bNok + "<s>X</s>  " + es;
-    static const string rep_t = bNok + "<u>t</u><s>f</s>  " + es;
-    static const string rep_f = bNok + "<s>t</s><u>f</u>  " + es;
-    static const string rep_T = bNok + "<u>T</u><s>F</s>  " + es;
-    static const string rep_F = bNok + "<s>T</s><u>F</u>  " + es;
+    static const CONST_C_STRING rep_x  = "$1<span class=x>$2<s>X</s>   $3</span>";
+    static const CONST_C_STRING rep_t  = "$1<span class=x>$2<u>t</u><s>f</s>   $3</span>";
+    static const CONST_C_STRING rep_f  = "$1<span class=x>$2<s>t</s><u>f</u>   $3</span>";
+    static const CONST_C_STRING rep_T  = "$1<span class=x>$2<u>T</u><s>F</s>   $3</span>";
+    static const CONST_C_STRING rep_F  = "$1<span class=x>$2<s>T</s><u>F</u>   $3</span>";
 
     static const regex reExt("\\.\\w+$");
 
@@ -63,19 +59,20 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrFile)
     const bool ok = read(buff, covbrFile);
     if (ok)
     {
-        string rep = repl(reTail, "", repl(reLead, "", repl(reSpc, "\n$1", repl(reDouble, "\n$1$2", buff))));
+        // string rep = repl(reTail, "", repl(reLead, "", repl(reSpc, "\n$1", repl(reDouble, "\n$1$2", buff))));
+        string rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDouble, "\n$1$2", buff)));
 
         //  TODO:  write file if changed
-        if (rep != buff)
-        {
-            std::ofstream os(covbrFile);
-            if (os.good())
-            {
-                cout << "-> " << covbrFile << endl;
-                os << rep;
-            }
-            os.close();
-        }
+        // if (rep != buff)
+        // {
+        //     std::ofstream os(covbrFile);
+        //     if (os.good())
+        //     {
+        //         cout << "-> " << covbrFile << endl;
+        //         os << rep;
+        //     }
+        //     os.close();
+        // }
 
         rep =   repl(re_tf, rep_tf, 
                 repl(re_X,  rep_X,
