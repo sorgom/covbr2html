@@ -1,3 +1,16 @@
+# specific
+build
+tmp.*
+tmp_*.*
+
+# temporary ignored
+Makefile
+*.sln
+*.vcxproj
+*.vcxproj.*
+.vs
+.vscode
+
 # Prerequisites
 *.d
 
