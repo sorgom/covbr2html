@@ -10,7 +10,7 @@
 class Covbr2Html
 {
 public:
-    static bool convert(CONST_C_STRING covbrFile);
+    static bool convert(CONST_C_STRING covbrTxt);
 
     Covbr2Html() = delete;
     Covbr2Html(const Covbr2Html&) = delete;
@@ -28,6 +28,11 @@ private:
     {
         return std::regex_replace(src, re, rep);
     }
+
+    //  simple basename implementation
+    //  in case std::filesystem::path not easily available
+    static const CONST_C_STRING basename(CONST_C_STRING fp);
+
 };
 
 
