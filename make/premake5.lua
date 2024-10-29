@@ -2,12 +2,12 @@
 --  premake5 build rules for covbr2html
 --  ============================================================
 
-buildoptions_vs = '/std:c++17 /MP /W4 /wd4100 /wd4103'
-buildoptions_gcc = '-std=c++17 -pedantic-errors -Wall'
+buildoptions_vs = '/std:c++17 /MP /W4 /O2 /Ot /wd4100 /wd4103'
+buildoptions_gcc = '-std=c++17 -O3 -pedantic-errors -Wall'
 
 workspace 'covbr2html'
 
-    configurations { 'ci', 'debug' }
+    configurations { 'ci' }
     language 'C++'
     targetdir '../build'
     objdir  '../build/obj/%{_TARGET_OS}/%{cfg.name}'
@@ -24,10 +24,11 @@ workspace 'covbr2html'
 
     filter { 'configurations:ci' }
         defines { 'NDEBUG' }
+        optimize 'Speed'
         
-    filter { 'configurations:debug' }
-        defines { 'DEBUG' }
-        symbols 'On'
+    -- filter { 'configurations:debug' }
+    --     defines { 'DEBUG' }
+    --     symbols 'On'
 
     project 'covbr2html'
         kind 'ConsoleApp'

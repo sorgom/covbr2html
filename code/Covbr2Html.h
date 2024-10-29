@@ -18,9 +18,17 @@ public:
     Covbr2Html& operator = (const Covbr2Html&) = delete;
 
 private:
+    static const CONST_C_STRING cTtl;
+    static const CONST_C_STRING cHead;
+    static const CONST_C_STRING cTail;
+
     static bool read(std::string& trg, CONST_C_STRING txtFile);
 
     inline static std::string repl(const std::regex& re, CONST_C_STRING rep, const std::string& src)
+    {
+        return std::regex_replace(src, re, rep);
+    }
+    inline static std::string repl(const std::regex& re, const std::string& rep, const std::string& src)
     {
         return std::regex_replace(src, re, rep);
     }
