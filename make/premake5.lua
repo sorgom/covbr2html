@@ -10,7 +10,7 @@ workspace 'covbr2html'
     configurations { 'ci', 'verbose' }
     language 'C++'
     targetdir '../build'
-    objdir  '../build/obj/%{_PROJECT}}/%{_TARGET_OS}/%{cfg.name}'
+    objdir  '../build/%{_TARGET_OS}/%{cfg.name}'
     defines { 'NDEBUG' }
     optimize 'Speed'
     kind 'ConsoleApp'
@@ -26,6 +26,7 @@ workspace 'covbr2html'
 
     filter { 'configurations:verbose' }
         defines { 'VERBOSE' }
+        targetsuffix '_v'
 
     project 'covbr2html'
         files { '../code/*.cpp' }
