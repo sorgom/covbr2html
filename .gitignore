@@ -1,6 +1,6 @@
 # specific
 build
-lab
+# lab
 tmp.*
 tmp_*.*
 

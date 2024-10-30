@@ -31,5 +31,5 @@ workspace 'covbr2html'
     project 'covbr2html'
         files { '../code/*.cpp' }
   
-    -- project 'lab'
-    --     files { '../lab/*.cpp' }
+    project 'lab'
+        files { '../lab/*.cpp' }
