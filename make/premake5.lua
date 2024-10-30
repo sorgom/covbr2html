@@ -23,6 +23,7 @@ workspace 'covbr2html'
 
     filter { 'action:gmake*' }
         buildoptions { buildoptions_gcc }
+        linkoptions { '-pthread' }
 
     filter { 'configurations:verbose' }
         defines { 'VERBOSE' }
