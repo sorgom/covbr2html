@@ -7,13 +7,15 @@ buildoptions_gcc = '-std=c++17 -O3 -pedantic-errors -Wall'
 
 workspace 'covbr2html'
 
-    configurations { 'ci' }
+    configurations { 'ci', 'verbose' }
     language 'C++'
     targetdir '../build'
-    objdir  '../build/obj/%{_TARGET_OS}/%{cfg.name}'
-    
+    objdir  '../build/obj/%{_PROJECT}}/%{_TARGET_OS}/%{cfg.name}'
+    defines { 'NDEBUG' }
+    optimize 'Speed'
+    kind 'ConsoleApp'
+
     includedirs { '../code' }
-    files { '../code/*.cpp' }
 
     filter { 'action:vs*' }
         warnings 'high'
@@ -22,14 +24,11 @@ workspace 'covbr2html'
     filter { 'action:gmake*' }
         buildoptions { buildoptions_gcc }
 
-    filter { 'configurations:ci' }
-        defines { 'NDEBUG' }
-        optimize 'Speed'
-        
-    -- filter { 'configurations:debug' }
-    --     defines { 'DEBUG' }
-    --     symbols 'On'
+    filter { 'configurations:verbose' }
+        defines { 'VERBOSE' }
 
     project 'covbr2html'
-        kind 'ConsoleApp'
-   
+        files { '../code/*.cpp' }
+  
+    -- project 'lab'
+    --     files { '../lab/*.cpp' }

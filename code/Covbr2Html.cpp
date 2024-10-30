@@ -5,10 +5,16 @@
 #include <fstream>
 #include <streambuf>
 
-using std::cout, std::endl;
+using std::cout, std::cerr, std::endl;
 using std::regex, std::regex_replace, std::regex_constants::extended;
 using std::string;
 using fpath = std::filesystem::path;
+
+#ifdef VERBOSE
+#define ECHO(MSG) cout << MSG << '\n';
+#else
+#define ECHO(MSG)
+#endif
 
 bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
 {
@@ -17,7 +23,7 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):"
 
     //  txt file cleanup
-    static const regex reDouble(
+    static const regex reDup(
         C_BEGIN
         C_ECLIP
         "(?:" C_FILE "\\n)*"
@@ -34,29 +40,28 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     static const regex reGt(">");
 
     #define C_BEGIN_B C_BEGIN "( *)"
-    
     // OK cases & replacements
-    static const regex re_tf(C_BEGIN_B "(TF|tf)(?: (.*))?");
-    static const regex re_X (C_BEGIN_B "X  (.*)");
+    static const regex re_tf(C_BEGIN_B "(TF|tf)");
+    static const regex re_X (C_BEGIN_B "X\\b");
 
-    #define C_SPAN_OK  "$1<span>$2"
-    static const CONST_C_STRING rep_tf = C_SPAN_OK "<u>$3</u> $4</span>";
-    static const CONST_C_STRING rep_X  = C_SPAN_OK "<u>&gt;&gt;</u> $3</span>";
+    static const CONST_C_STRING rep_tf = "$1$2<u>$3</u>";
+    static const CONST_C_STRING rep_X  = "$1$2 ";
     
     #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
+    #define C_CONT "(?:$| (.*))"
     // NOK cases & replacements
-    static const regex re_x(C_BEGIN_NOK " (.*)");
-    static const regex re_t(C_BEGIN_NOK "t (.*)");
-    static const regex re_f(C_BEGIN_NOK "f (.*)");
-    static const regex re_T(C_BEGIN_NOK "T (.*)");
-    static const regex re_F(C_BEGIN_NOK "F (.*)");
+    static const regex re_x(C_BEGIN_NOK C_CONT);
+    static const regex re_t(C_BEGIN_NOK "t" C_CONT);
+    static const regex re_f(C_BEGIN_NOK "f" C_CONT);
+    static const regex re_T(C_BEGIN_NOK "T" C_CONT);
+    static const regex re_F(C_BEGIN_NOK "F" C_CONT);
 
-    #define C_SPAN_NOK "$1<span class=x>$2"
-    static const CONST_C_STRING rep_x  = C_SPAN_NOK "<s>X</s>   $3</span>";
-    static const CONST_C_STRING rep_t  = C_SPAN_NOK "<u>t</u><s>f</s>   $3</span>";
-    static const CONST_C_STRING rep_f  = C_SPAN_NOK "<s>t</s><u>f</u>   $3</span>";
-    static const CONST_C_STRING rep_T  = C_SPAN_NOK "<u>T</u><s>F</s>   $3</span>";
-    static const CONST_C_STRING rep_F  = C_SPAN_NOK "<s>T</s><u>F</u>   $3</span>";
+    #define C_SPAN "$1<span>$2"
+    static const CONST_C_STRING rep_x  = C_SPAN "    $3</span>";
+    static const CONST_C_STRING rep_t  = C_SPAN "<u>t</u><s>f</s>   $3</span>";
+    static const CONST_C_STRING rep_f  = C_SPAN "<s>t</s><u>f</u>   $3</span>";
+    static const CONST_C_STRING rep_T  = C_SPAN "<u>T</u><s>F</s>   $3</span>";
+    static const CONST_C_STRING rep_F  = C_SPAN "<s>T</s><u>F</u>   $3</span>";
 
     //  file extension
     static const regex reExt("\\.\\w+$");
@@ -65,19 +70,19 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     const bool ok = read(buff, covbrTxt);
     if (ok)
     {
-        string rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDouble, "\n$1$2", buff)));
+        string rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDup, "\n$1$2", buff)));
 
-        //  TODO:  write file if changed
-        // if (rep != buff)
-        // {
-        //     std::ofstream os(covbrTxt);
-        //     if (os.good())
-        //     {
-        //         cout << "-> " << covbrTxt << endl;
-        //         os << rep;
-        //     }
-        //     os.close();
-        // }
+        //  write text file if changed
+        if (rep != buff)
+        {
+            std::ofstream os(covbrTxt);
+            if (os.good())
+            {
+                ECHO( "-> " << covbrTxt)
+                os << rep;
+            }
+            os.close();
+        }
 
         rep =   repl(re_tf, rep_tf, 
                 repl(re_X,  rep_X,
@@ -90,14 +95,14 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
                 repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)
             ))))))))));
 
-        const string ttl = repl(reExt, "", basename(covbrTxt));
-        const string out = repl(reExt, ".html", covbrTxt);
-
+        //  write html file
+        const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
+        const string covbrHtml = repl(reExt, ".html", covbrTxt);
         {
-            std::ofstream os(out);
+            std::ofstream os(covbrHtml);
             if (os.good())
             {
-                cout << "-> " << out << endl;
+                ECHO("-> " << covbrHtml)
                 os << cTtl << ttl << cHead << rep << cTail;
             }
             os.close();
@@ -105,14 +110,13 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     }
     else
     {
-        cout << "Error reading file " << covbrTxt << endl;
+        ECHO("Error reading file " << covbrTxt)
     }
     return ok;
 }
 
 bool Covbr2Html::read(string& trg, const CONST_C_STRING txtFile)
 {
-    //  read text file into string
     std::ifstream is(txtFile);
     const bool ok = is.good();
     if (ok)
@@ -128,9 +132,7 @@ const CONST_C_STRING Covbr2Html::basename(const CONST_C_STRING fp)
 {
     static const auto isDirSign = [](const CHAR c)
     {
-        static const CHAR cSlash = '/';
-        static const CHAR cBack  = '\\';
-        return ((c == cSlash) or (c == cBack));
+        return ((c == '/') or (c == '\\'));
     };
 
     CONST_C_STRING ps = fp;
@@ -156,12 +158,10 @@ const CONST_C_STRING Covbr2Html::cHead =
     "    white-space:pre;\n"
     "}\n"
     "p { font-size:10pt; margin-left: 1em; margin-bottom: 2em; }\n"
-    // "span { background-color: hsl(120,100%,93%); }\n"
-    "span > u { color: blue; font-weight: bold; }\n"
-    "span.x { background-color: hsl(355,100%,91%); }\n"
-    "span > s { color: red; font-weight: bold; }\n"
+    "u { color: blue; font-weight: bold; }\n"
+    "s { color: red; font-weight: bold; }\n"
+    "span { background-color: hsl(355,100%,91%); }\n"
     "em { font-weight: bold; font-size:12pt; }\n"
-    "span > s { color: red; font-weight: bold; }\n"
     "</style>\n"
     "</head>\n"
     "<body>\n"
