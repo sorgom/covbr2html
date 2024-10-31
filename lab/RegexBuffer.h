@@ -18,58 +18,18 @@ public:
         mFactor(factor < 1 ? 1 : factor)
     {}
 
+    //  not thread-safe
+    static RegexBuffer& instance();
+
     ~RegexBuffer();
 
     int overflow(int c) override;
 
-
+    bool read(CONST_C_STRING filename);
+    bool repl(const std::regex re, CONST_C_STRING fmt);
     inline CONST_C_STRING str() const { return rBuf; }
-private:    
-    
-    inline CONST_C_STRING begin() const { return rBuf; }
-    inline const char* end() const { return rBuf + rPos; }
-    bool resize(size_t sz);
-    bool read(const CONST_C_STRING filename)
-    {
-        std::ifstream is(filename);
-        mOk = is.good();
-        if (mOk)
-        {
-            is.seekg(0, is.end);
-            const auto end = is.tellg();
-            is.seekg(0, is.beg);
-            const auto fsize = end - is.tellg();
-            if (resize(fsize * mFactor))
-            {
-                is.read(rBuf, fsize);
-                rPos = fsize;
-                rBuf[rPos] = '\0';
-            }
-        }
-        is.close();
-        return mOk;
-    }
-    void swap()
-    {
-        rPos = wPos;
-        wPos = 0;
-        const C_STRING tmp = rBuf;
-        rBuf = wBuf;
-        wBuf = tmp;
-    }
-    bool repl(const std::regex re, const CONST_C_STRING fmt)
-    {
-        if (mOk)
-        {
-            std::regex_replace(std::ostreambuf_iterator<char>(*this),
-                      begin(), end(), re, fmt);
-            
-            if (mOk) swap();
-        }
-        return mOk;
-    }
 
-private:
+private:    
     const size_t mFactor;
     size_t mSize = 0;
     size_t rPos = 0;    
@@ -79,18 +39,13 @@ private:
     C_STRING rBuf = nullptr;
     C_STRING wBuf = nullptr;
     bool mOk = false;
-
-    void del(C_STRING& ptr)
-    {
-        if (ptr != nullptr) delete[] ptr;
-        ptr = nullptr;
-    }
-    bool resize(C_STRING& ptr, const size_t sz)
-    {
-        del(ptr);
-        ptr = new CHAR[sz + 1];
-        return ptr != nullptr;
-    }
+    
+    inline CONST_C_STRING begin() const { return rBuf; }
+    inline const char* end() const { return rBuf + rPos; }
+    bool resize(size_t sz);
+    bool resize(C_STRING& ptr, size_t sz);
+    void swap();
+    void del(C_STRING& ptr);
 
     RegexBuffer(const RegexBuffer&) = delete;
     RegexBuffer(RegexBuffer&&) = delete; 
