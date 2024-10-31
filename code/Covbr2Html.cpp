@@ -1,8 +1,9 @@
 #include <Covbr2Html.h>
+#include <trace.h>
 
 #include <filesystem>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <streambuf>
 
 using std::cout, std::cerr, std::endl;
@@ -10,11 +11,6 @@ using std::regex, std::regex_replace, std::regex_constants::extended;
 using std::string;
 using fpath = std::filesystem::path;
 
-#ifdef VERBOSE
-#define ECHO(MSG) cout << MSG << '\n';
-#else
-#define ECHO(MSG)
-#endif
 
 bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
 {
@@ -78,7 +74,7 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
             std::ofstream os(covbrTxt);
             if (os.good())
             {
-                ECHO( "-> " << covbrTxt)
+                TRACE( "-> " << covbrTxt)
                 os << rep;
             }
             os.close();
@@ -102,7 +98,7 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
             std::ofstream os(covbrHtml);
             if (os.good())
             {
-                ECHO("-> " << covbrHtml)
+                TRACE("-> " << covbrHtml)
                 os << cTtl << ttl << cHead << rep << cTail;
             }
             os.close();
@@ -110,7 +106,7 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     }
     else
     {
-        ECHO("Error reading file " << covbrTxt)
+        TRACE("Error reading file " << covbrTxt)
     }
     return ok;
 }
@@ -126,20 +122,6 @@ bool Covbr2Html::read(string& trg, const CONST_C_STRING txtFile)
     }
     is.close();
     return ok;
-}
-
-const CONST_C_STRING Covbr2Html::basename(const CONST_C_STRING fp)
-{
-    static const auto isDirSign = [](const CHAR c)
-    {
-        return ((c == '/') or (c == '\\'));
-    };
-
-    CONST_C_STRING ps = fp;
-    for (; *ps != 0; ++ps);
-    for (; (ps != fp) and (not isDirSign(*ps)); --ps);
-    if (isDirSign(*ps)) ++ps;
-    return ps;
 }
 
 const CONST_C_STRING Covbr2Html::cTtl =

@@ -2,25 +2,33 @@
 #include <glob.h>
 #include <iostream>
 
-INT32 ret = 0;
-
-void covFunc(const CONST_C_STRING item)
+class CovbrGlobber : public I_GlobProcessor
 {
-    if (not Covbr2Html::convert(item))
+public:
+    void process(const CONST_C_STRING item) override
     {
-        ret = 1;
+        if (not cov.convert(item))
+        {
+            _ret = 1;
+        }
     }
-}
+    inline INT32 ret() const { return _ret; }
+private:
+    Covbr2Html cov;
+    INT32 _ret = 0;  
+};
 
-int main(const INT32 argc, const CONST_C_STRING* const argv)
+INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
 {
-    for (INT32 i = 1; (i < argc) and (ret == 0); ++i)
+    CovbrGlobber globber;
+
+    for (INT32 i = 1; (i < argc) and (globber.ret() == 0); ++i)
     {
-        glob(argv[i], &covFunc);
+        glob(argv[i], globber);
     }
-    if (ret != 0)
+    if (globber.ret() != 0)
     {
         std::cerr << "Error converting files" << '\n';
     }
-    return ret;
+    return globber.ret();
 }

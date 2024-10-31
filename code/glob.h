@@ -5,11 +5,15 @@
 #include <BaseTypes.h>
 #include <regex>
 
-using globFunc = void(*)(const CONST_C_STRING fpath);
+class I_GlobProcessor
+{
+public:
+    virtual void process(const CONST_C_STRING item) = 0;
+};
 
 //!  glob files
 //!  @param item file, or directory with file glob pattern
 //!  @param func file processing function
-void glob(const CONST_C_STRING item, globFunc func);
+void glob(const CONST_C_STRING item, I_GlobProcessor& proc);
 
 #endif // _H

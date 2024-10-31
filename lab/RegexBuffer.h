@@ -27,11 +27,13 @@ public:
 
     bool read(CONST_C_STRING filename);
     bool repl(const std::regex re, CONST_C_STRING fmt);
-    inline CONST_C_STRING str() const { return rBuf; }
+    CONST_C_STRING str() const;
+    bool write(CONST_C_STRING filename) const;
 
 private:    
     const size_t mFactor;
     size_t mSize = 0;
+    size_t mHyst = 0;
     size_t rPos = 0;    
     size_t wPos = 0;
     C_STRING buf1 = nullptr;

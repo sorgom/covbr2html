@@ -4,6 +4,9 @@ build
 tmp.*
 tmp_*.*
 
+*.txt
+*.html
+
 # temporary ignored
 Makefile
 *.make

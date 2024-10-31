@@ -9,11 +9,11 @@ using fp = std::filesystem::path;
 using std::regex, std::regex_replace, std::regex_match;
 using std::string;
 
-void glob(const CONST_C_STRING item, globFunc func)
+void glob(const CONST_C_STRING item, I_GlobProcessor& proc)
 {
     if (std::filesystem::is_regular_file(item))
     {
-        func(item);
+        proc.process(item);
     }
     else if (string(item).find('*') != string::npos)
     {
@@ -28,7 +28,7 @@ void glob(const CONST_C_STRING item, globFunc func)
                 regex_match(entry.path().filename().string(), re)
             )
             {
-                func(entry.path().string().c_str());
+                proc.process(entry.path().string().c_str());
             }
         }
     }

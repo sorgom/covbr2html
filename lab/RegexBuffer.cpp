@@ -1,7 +1,9 @@
 #include <RegexBuffer.h>
+#include <trace.h>
 
 RegexBuffer::~RegexBuffer()
 {
+    TRACE("RegexBuffer::~RegexBuffer()")
     del(buf1);
     del(buf2);
 }
@@ -22,24 +24,9 @@ int RegexBuffer::overflow(const int c)
     return c;
 }
 
-bool RegexBuffer::resize(const size_t sz)
-{
-    if (sz > mSize)
-    {
-        mOk =
-            resize(buf1, sz) and
-            resize(buf2, sz);
-    }
-    rPos = 0;
-    wPos = 0;
-    rBuf = buf1;
-    wBuf = buf2;
-    mSize = mOk ? sz : 0;
-    return mOk;
-}
-
 bool RegexBuffer::read(const CONST_C_STRING filename)
 {
+    TRACE("read: " << filename)
     std::ifstream is(filename);
     mOk = is.good();
     if (mOk)
@@ -48,7 +35,7 @@ bool RegexBuffer::read(const CONST_C_STRING filename)
         const auto end = is.tellg();
         is.seekg(0, is.beg);
         const auto fsize = end - is.tellg();
-        if (resize(fsize * mFactor))
+        if (resize(fsize))
         {
             is.read(rBuf, fsize);
             rPos = fsize;
@@ -57,15 +44,6 @@ bool RegexBuffer::read(const CONST_C_STRING filename)
     }
     is.close();
     return mOk;
-}
-void RegexBuffer::swap()
-{
-    rPos = wPos;
-    wPos = 0;
-    const C_STRING tmp = rBuf;
-    rBuf = wBuf;
-    wBuf = tmp;
-    rBuf[rPos] = '\0';
 }
 
 bool RegexBuffer::repl(const std::regex re, const CONST_C_STRING fmt)
@@ -79,10 +57,49 @@ bool RegexBuffer::repl(const std::regex re, const CONST_C_STRING fmt)
     }
     return mOk;
 }
-void RegexBuffer::del(C_STRING& ptr)
+
+CONST_C_STRING RegexBuffer::str() const
+{ 
+    static const CHAR dummy = '\0';
+    return mOk? rBuf : &dummy;
+}
+
+bool RegexBuffer::write(CONST_C_STRING filename) const
 {
-    if (ptr != nullptr) delete[] ptr;
-    ptr = nullptr;
+    bool ok = mOk;
+    if (ok)
+    {
+        TRACE("write: " << rPos)
+        std::ofstream os(filename);
+        ok = os.good();
+        if (ok)
+        {
+            os << rBuf;
+        }
+        os.close();
+    }
+    return ok;
+}
+
+bool RegexBuffer::resize(const size_t sz)
+{
+    if (sz > mHyst)
+    {
+        const size_t nSize = sz * mFactor;
+        TRACE("incomming: " << sz)
+        TRACE("resize to: " << nSize)
+        mOk =
+            resize(buf1, nSize) and
+            resize(buf2, nSize);
+        rPos = 0;
+        wPos = 0;
+        rBuf = buf1;
+        wBuf = buf2;
+        mSize = mOk ? nSize : 0;
+        mHyst = mOk ? (sz + nSize + 1) / 2 : 0;
+        TRACE_VAR(mOk)
+    }
+    return mOk;
 }
 
 bool RegexBuffer::resize(C_STRING& ptr, const size_t sz)
@@ -91,4 +108,23 @@ bool RegexBuffer::resize(C_STRING& ptr, const size_t sz)
     ptr = new CHAR[sz + 1];
     return ptr != nullptr;
 }
+
+void RegexBuffer::swap()
+{
+    TRACE("swap")
+    TRACE_VAR(wPos)
+    rPos = wPos;
+    wPos = 0;
+    const C_STRING tmp = rBuf;
+    rBuf = wBuf;
+    wBuf = tmp;
+    rBuf[rPos] = '\0';
+}
+
+void RegexBuffer::del(C_STRING& ptr)
+{
+    if (ptr != nullptr) delete[] ptr;
+    ptr = nullptr;
+}
+
 

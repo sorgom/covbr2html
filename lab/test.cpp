@@ -2,7 +2,7 @@
 
 #include <iostream>
 using std::cout, std::endl;
-
+#include <string>
 
 int main(const INT32 argc, const CONST_C_STRING* const argv)
 {
@@ -14,12 +14,22 @@ int main(const INT32 argc, const CONST_C_STRING* const argv)
         cout << "Reading " << argv[1] << endl;
         if (rb.read(argv[1]))
         {
+            std::string s = rb.str();
             cout << "replacing" << endl;
             if (
-                rb.repl(re1, "$1???") and
+                rb.repl(re1, "$1??? replaced") and
                 rb.repl(re2, "$1Wumpel$2")   
-            )
-                cout << rb.str() << '\n';
+            ) 
+            {
+                if (s != rb.str())
+                {
+                    cout << "Writing tmp.txt" << endl;
+                    rb.write("tmp.txt");
+                }
+                rb.write("tmp.txt");
+                // cout << rb.str() << endl;
+            }
+            
         }
     } 
 
