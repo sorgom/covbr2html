@@ -3,6 +3,7 @@
 --  ============================================================
 
 buildoptions_vs = '/std:c++17 /MP /W4 /O2 /Ot /wd4100 /wd4103'
+-- /wd4244 illegal conversion
 buildoptions_gcc = '-std=c++17 -O3 -pedantic-errors -Wall'
 
 workspace 'covbr2html'
@@ -33,4 +34,5 @@ workspace 'covbr2html'
         files { '../code/*.cpp' }
   
     project 'lab'
+        includedirs { '../lab' }
         files { '../lab/*.cpp' }
