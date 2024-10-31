@@ -22,9 +22,6 @@ private:
 
     RegexBuffer mRb;
 
-    //  read file into string
-    static bool read(std::string& trg, CONST_C_STRING txtFile);
-
     //  Python regex style replacement
     template <typename T>
     inline static auto repl(const std::regex& re, CONST_C_STRING rep, const T& src)
