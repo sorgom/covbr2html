@@ -1,5 +1,5 @@
 #include <Covbr2Html.h>
-
+#include <pyrepl.h>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -8,8 +8,9 @@
 #define TRACE_ME
 #include <trace.h>
 
+using py::repl;
 using std::cout, std::cerr, std::endl;
-using std::regex, std::regex_replace;
+using std::regex, std::regex_replace, std::regex_search;
 using std::string;
 using fpath = std::filesystem::path;
 
@@ -67,7 +68,7 @@ bool Covbr2Html::convert(const std::string& covbrTxt, const bool wb)
     bool ok = false;
 
     ok = read(buff, covbrTxt);
-    if (ok)
+    if (ok and regex_search(buff, reFile))
     {
         string rep;
         {
@@ -160,4 +161,4 @@ const CONST_C_STRING Covbr2Html::cHead =
     "<body>\n"
     "<p>";
 
-const CONST_C_STRING Covbr2Html::cTail = "</p></body></html>";
+const CONST_C_STRING Covbr2Html::cTail = "</p></body></html>\n";

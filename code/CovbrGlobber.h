@@ -2,7 +2,7 @@
 #ifndef COVBR_GLOBBBER_H
 #define COVBR_GLOBBBER_H
 
-#include <glob.h>
+#include <fglob.h>
 
 #include <atomic>
 #include <thread>

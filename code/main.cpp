@@ -6,49 +6,6 @@
 #include <filesystem>
 #include <iostream>
 
-// class CovbrGlobber : public I_GlobProcessor
-// {
-// public:
-//     CovbrGlobber() = default;
-
-//     void process(const CONST_C_STRING item) override
-//     {
-//         TRACE_FUNC()
-//         mThreads.push_back(std::thread(&CovbrGlobber::treadFunc, this, std::string(item)));
-//     }
-//     inline INT32 ret() 
-//     {   
-//         TRACE_FUNC()
-//         for (auto& th : mThreads)
-//         {
-//             th.join();
-//         }
-//         mThreads.clear();
-//         if (_ret != 0)
-//         {
-//             std::cerr << _ret << " errors converting files\n";
-//         }
-//         return _ret; 
-//     }
-//     void setWb(bool wb = true)
-//     {
-//         mWb = wb;
-//     }
-// private:
-//     std::vector<std::thread> mThreads;
-//     std::atomic<INT32> _ret = 0;
-//     bool mWb = false;
-//     void treadFunc(const std::string&& file)
-//     {
-//         TRACE_FUNC()
-//         TRACE_VAR(file)
-//         if (not Covbr2Html::convert(file, mWb))
-//         {
-//             ++_ret;
-//         }
-//     }
-// };
-
 INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
 {
     TRACE_FUNC()
@@ -79,7 +36,7 @@ INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
         TRACE_VAR(argv[i])
         if (cWb != argv[i] and cHlp != argv[i])
         {
-            glob(argv[i], globber);
+            fglob(argv[i], globber);
         }
     }
     return globber.ret();

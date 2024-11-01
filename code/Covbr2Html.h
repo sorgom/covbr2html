@@ -24,13 +24,6 @@ private:
     //  read file into string
     static bool read(std::string& trg, const std::string& txtFile);
 
-    //  Python regex style replacement
-    template <typename T>
-    inline static auto repl(const std::regex& re, CONST_C_STRING rep, const T& src)
-    {
-        return std::regex_replace(src, re, rep);
-    }
-
     Covbr2Html() = delete;
     Covbr2Html(const Covbr2Html&) = delete;
     Covbr2Html(Covbr2Html&&) = delete;
