@@ -3,7 +3,8 @@ build
 # lab
 tmp.*
 tmp_*.*
-
+stuff
+ 
 *.txt
 *.html
 

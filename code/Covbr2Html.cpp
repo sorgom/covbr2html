@@ -5,7 +5,7 @@
 #include <iostream>
 #include <streambuf>
 
-// #define TRACE_ME
+#define TRACE_ME
 #include <trace.h>
 
 using std::cout, std::cerr, std::endl;
@@ -16,6 +16,7 @@ using fpath = std::filesystem::path;
 
 bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
 {
+    TRACE_FUNC()
     #define C_BEGIN "(?:^|(\\n))"
     #define C_ECLIP "(?: +\\.\\.\\.\\n)?"
     #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):"

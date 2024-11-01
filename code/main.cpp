@@ -2,6 +2,9 @@
 #include <glob.h>
 #include <iostream>
 
+#define TRACE_ME
+#include <trace.h>
+
 class CovbrGlobber : public I_GlobProcessor
 {
 public:
@@ -20,6 +23,7 @@ private:
 
 INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
 {
+    TRACE_FUNC()
     CovbrGlobber globber;
 
     for (INT32 i = 1; (i < argc) and (globber.ret() == 0); ++i)
