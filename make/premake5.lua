@@ -3,11 +3,12 @@
 --  ============================================================
 
 buildoptions_vs = '/std:c++17 /MP /W4 /O2 /Ot /wd4100 /wd4103'
+-- /wd4244 illegal conversion
 buildoptions_gcc = '-std=c++17 -O3 -pedantic-errors -Wall'
 
 workspace 'covbr2html'
 
-    configurations { 'ci', 'verbose' }
+    configurations { 'ci', 'trace_on', 'trace_all' }
     language 'C++'
     targetdir '../build'
     objdir  '../build/%{_TARGET_OS}/%{cfg.name}'
@@ -23,13 +24,17 @@ workspace 'covbr2html'
 
     filter { 'action:gmake*' }
         buildoptions { buildoptions_gcc }
+        linkoptions { '-pthread' }
 
-    filter { 'configurations:verbose' }
-        defines { 'VERBOSE' }
-        targetsuffix '_v'
+    filter { 'configurations:trace_on' }
+        defines { 'TRACE_ON' }
+
+    filter { 'configurations:trace_all' }
+        defines { 'TRACE_ALL' }
 
     project 'covbr2html'
         files { '../code/*.cpp' }
   
     -- project 'lab'
+    --     includedirs { '../lab' }
     --     files { '../lab/*.cpp' }

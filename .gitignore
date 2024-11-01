@@ -3,6 +3,7 @@ build
 lab
 tmp.*
 tmp_*.*
+stuff
 
 # temporary ignored
 Makefile

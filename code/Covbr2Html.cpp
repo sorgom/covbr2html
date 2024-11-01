@@ -5,18 +5,15 @@
 #include <fstream>
 #include <streambuf>
 
+#define TRACE_ME
+#include <trace.h>
+
 using std::cout, std::cerr, std::endl;
 using std::regex, std::regex_replace, std::regex_constants::extended;
 using std::string;
 using fpath = std::filesystem::path;
 
-#ifdef VERBOSE
-#define ECHO(MSG) cout << MSG << '\n';
-#else
-#define ECHO(MSG)
-#endif
-
-bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
+bool Covbr2Html::convert(const std::string& covbrTxt, const bool wb)
 {
     #define C_BEGIN "(?:^|(\\n))"
     #define C_ECLIP "(?: +\\.\\.\\.\\n)?"
@@ -67,42 +64,50 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     static const regex reExt("\\.\\w+$");
 
     string buff;
-    const bool ok = read(buff, covbrTxt);
+    bool ok = false;
+
+    ok = read(buff, covbrTxt);
+    string rep;
     if (ok)
     {
-        string rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDup, "\n$1$2", buff)));
-
-        //  write text file if changed
-        if (rep != buff)
         {
+            TRACE_FLOW(rep 1)
+            rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDup, "\n$1$2", buff)));
+        }
+        //  write text file if changed
+        if (wb and rep != buff)
+        {
+            TRACE_FLOW(write 1)
             std::ofstream os(covbrTxt);
             if (os.good())
             {
-                ECHO( "-> " << covbrTxt)
+                TRACE( "-> " << covbrTxt)
                 os << rep;
             }
             os.close();
         }
-
-        rep =   repl(re_tf, rep_tf, 
-                repl(re_X,  rep_X,
-                repl(re_x,  rep_x,
-                repl(re_t,  rep_t,
-                repl(re_f,  rep_f,
-                repl(re_T,  rep_T,
-                repl(re_F,  rep_F, 
-                repl(reFile, "$1<em>$2</em>", 
-                repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)
-            ))))))))));
-
-        //  write html file
-        const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
-        const string covbrHtml = repl(reExt, ".html", covbrTxt);
         {
+            TRACE_FLOW(rep 2)
+            rep =   repl(re_tf, rep_tf, 
+                    repl(re_X,  rep_X,
+                    repl(re_x,  rep_x,
+                    repl(re_t,  rep_t,
+                    repl(re_f,  rep_f,
+                    repl(re_T,  rep_T,
+                    repl(re_F,  rep_F, 
+                    repl(reFile, "$1<em>$2</em>", 
+                    repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)
+                ))))))))));
+        }
+        //  write html file
+        {
+            TRACE_FLOW(write 2)
+            const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
+            const string covbrHtml = repl(reExt, ".html", covbrTxt);
             std::ofstream os(covbrHtml);
             if (os.good())
             {
-                ECHO("-> " << covbrHtml)
+                TRACE("-> " << covbrHtml)
                 os << cTtl << ttl << cHead << rep << cTail;
             }
             os.close();
@@ -110,13 +115,15 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     }
     else
     {
-        ECHO("Error reading file " << covbrTxt)
+        TRACE("Error reading file " << covbrTxt)
     }
     return ok;
 }
 
-bool Covbr2Html::read(string& trg, const CONST_C_STRING txtFile)
+bool Covbr2Html::read(string& trg, const string& txtFile)
 {
+    TRACE_FUNC()
+    TRACE("<- " << txtFile)
     std::ifstream is(txtFile);
     const bool ok = is.good();
     if (ok)
@@ -128,19 +135,19 @@ bool Covbr2Html::read(string& trg, const CONST_C_STRING txtFile)
     return ok;
 }
 
-const CONST_C_STRING Covbr2Html::basename(const CONST_C_STRING fp)
-{
-    static const auto isDirSign = [](const CHAR c)
-    {
-        return ((c == '/') or (c == '\\'));
-    };
+// const CONST_C_STRING Covbr2Html::basename(const CONST_C_STRING fp)
+// {
+//     static const auto isDirSign = [](const CHAR c)
+//     {
+//         return ((c == '/') or (c == '\\'));
+//     };
 
-    CONST_C_STRING ps = fp;
-    for (; *ps != 0; ++ps);
-    for (; (ps != fp) and (not isDirSign(*ps)); --ps);
-    if (isDirSign(*ps)) ++ps;
-    return ps;
-}
+//     CONST_C_STRING ps = fp;
+//     for (; *ps != 0; ++ps);
+//     for (; (ps != fp) and (not isDirSign(*ps)); --ps);
+//     if (isDirSign(*ps)) ++ps;
+//     return ps;
+// }
 
 const CONST_C_STRING Covbr2Html::cTtl =
     "<!DOCTYPE html>\n"

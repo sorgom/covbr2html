@@ -10,7 +10,7 @@
 class Covbr2Html
 {
 public:
-    static bool convert(CONST_C_STRING covbrTxt);
+    static bool convert(const std::string& covbrTxt, bool wb);
 
 private:
     static const CONST_C_STRING cTtl;
@@ -18,7 +18,7 @@ private:
     static const CONST_C_STRING cTail;
 
     //  read file into string
-    static bool read(std::string& trg, CONST_C_STRING txtFile);
+    static bool read(std::string& trg, const std::string& txtFile);
 
     //  Python regex style replacement
     template <typename T>
@@ -27,9 +27,9 @@ private:
         return std::regex_replace(src, re, rep);
     }
 
-    //  simple basename implementation
-    //  in case std::filesystem::path not easily available
-    static const CONST_C_STRING basename(CONST_C_STRING fp);
+    // //  simple basename implementation
+    // //  in case std::filesystem::path not easily available
+    // static const CONST_C_STRING basename(CONST_C_STRING fp);
 
     Covbr2Html() = delete;
     Covbr2Html(const Covbr2Html&) = delete;
