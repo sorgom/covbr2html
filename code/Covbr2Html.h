@@ -1,16 +1,20 @@
 
 #pragma once
-#ifndef COVBR2HTML_H
-#define COVBR2HTML_H
+#ifndef COVBR_2_HTML_H
+#define COVBR_2_HTML_H
 
 #include <BaseTypes.h>
 #include <string>
 #include <regex>
 
+//  covbr to html converter
 class Covbr2Html
 {
 public:
-    static bool convert(const std::string& covbrTxt, bool wb);
+    //  the conversion
+    //  covbrTxt: source file name
+    //  wb: write back cleaned sources
+    static bool convert(const std::string& covbrTxt, bool wb = false);
 
 private:
     static const CONST_C_STRING cTtl;
@@ -26,10 +30,6 @@ private:
     {
         return std::regex_replace(src, re, rep);
     }
-
-    // //  simple basename implementation
-    // //  in case std::filesystem::path not easily available
-    // static const CONST_C_STRING basename(CONST_C_STRING fp);
 
     Covbr2Html() = delete;
     Covbr2Html(const Covbr2Html&) = delete;
