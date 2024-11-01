@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <streambuf>
 
 #define TRACE_ME
 #include <trace.h>
@@ -127,7 +128,8 @@ bool Covbr2Html::read(string& trg, const string& txtFile)
     const bool ok = is.good();
     if (ok)
     {
-        is >> trg;
+        trg.assign((std::istreambuf_iterator<char>(is)),
+            std::istreambuf_iterator<char>());
     }
     is.close();
     return ok;
