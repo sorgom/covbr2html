@@ -8,7 +8,7 @@ buildoptions_gcc = '-std=c++17 -O3 -pedantic-errors -Wall'
 
 workspace 'covbr2html'
 
-    configurations { 'ci', 'trace' }
+    configurations { 'ci', 'trace_on', 'trace_all' }
     language 'C++'
     targetdir '../build'
     objdir  '../build/%{_TARGET_OS}/%{cfg.name}'
@@ -26,9 +26,11 @@ workspace 'covbr2html'
         buildoptions { buildoptions_gcc }
         linkoptions { '-pthread' }
 
-    filter { 'configurations:trace' }
-        defines { 'TRACE_ENABLED' }
-        targetsuffix '_%{cfg.name}'
+    filter { 'configurations:trace_on' }
+        defines { 'TRACE_ON' }
+
+    filter { 'configurations:trace_all' }
+        defines { 'TRACE_ALL' }
 
     project 'covbr2html'
         files { '../code/*.cpp' }

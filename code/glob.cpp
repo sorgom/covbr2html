@@ -15,6 +15,7 @@ void glob(const CONST_C_STRING item, I_GlobProcessor& proc)
     {
         proc.process(item);
     }
+#ifdef _WIN32
     else if (string(item).find('*') != string::npos)
     {
         static const regex reAst("[*]");
@@ -32,4 +33,5 @@ void glob(const CONST_C_STRING item, I_GlobProcessor& proc)
             }
         }
     }
+#endif
 }

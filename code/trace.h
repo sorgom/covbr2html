@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#ifdef TRACE_ENABLED
+#if defined(TRACE_ALL) || (defined(TRACE_ON) && defined(TRACE_ME))
 #define TRACE(MSG) std::cout << MSG << '\n';
 #define TRACE_ERR(MSG) std::cerr << MSG << '\n';
 #define TRACE_VAR(VAR) TRACE(#VAR << ": " << VAR)

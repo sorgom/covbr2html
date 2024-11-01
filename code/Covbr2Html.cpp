@@ -1,10 +1,12 @@
 #include <Covbr2Html.h>
-#include <trace.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <streambuf>
+
+// #define TRACE_ME
+#include <trace.h>
 
 using std::cout, std::cerr, std::endl;
 using std::regex, std::regex_replace, std::regex_constants::extended;
@@ -62,49 +64,38 @@ bool Covbr2Html::convert(const CONST_C_STRING covbrTxt)
     //  file extension
     static const regex reExt("\\.\\w+$");
 
-    bool ok = mRb.read(covbrTxt);
+    bool ok = 
+        mRb.read(covbrTxt) and
+        mRb.repl(reDup, "\n$1$2") and
+        mRb.repl(reSpc, "\n$1") and
+        mRb.repl(reTail, "") and
+        mRb.repl(reAmp, "&amp;") and 
+        mRb.repl(reLt,  "&lt;") and
+        mRb.repl(reGt,  "&gt;") and
+        mRb.repl(reFile, "$1<em>$2</em>") and
+        mRb.repl(re_x,  rep_x) and
+        mRb.repl(re_t,  rep_t) and
+        mRb.repl(re_f,  rep_f) and
+        mRb.repl(re_T,  rep_T) and
+        mRb.repl(re_F,  rep_F) and
+        mRb.repl(re_tf, rep_tf) and
+        mRb.repl(re_X,  rep_X);
+
     if (ok)
     {
-        string old = mRb.str();
-        ok = 
-            mRb.repl(reDup, "\n$1$2") and
-            mRb.repl(reSpc, "\n$1") and
-            mRb.repl(reTail, "");
-
-        //  write text file if changed
-        if (ok and old != mRb.str())
-        {
-            TRACE("-> " << covbrTxt)
-            // mRb.write(covbrTxt);
-        }
-
-        ok = ok and
-            mRb.repl(reAmp, "&amp;") and 
-            mRb.repl(reLt,  "&lt;") and
-            mRb.repl(reGt,  "&gt;") and
-            mRb.repl(reFile, "$1<em>$2</em>") and
-            mRb.repl(re_x,  rep_x) and
-            mRb.repl(re_t,  rep_t) and
-            mRb.repl(re_f,  rep_f) and
-            mRb.repl(re_T,  rep_T) and
-            mRb.repl(re_F,  rep_F) and
-            mRb.repl(re_tf, rep_tf) and
-            mRb.repl(re_X,  rep_X);
-
+        //  write html file
+        const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
+        const string covbrHtml = repl(reExt, ".html", covbrTxt);
+        std::ofstream os(covbrHtml);
+        ok = os.good();
         if (ok)
         {
-            //  write html file
-            const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
-            const string covbrHtml = repl(reExt, ".html", covbrTxt);
-            std::ofstream os(covbrHtml);
-            if (os.good())
-            {
-                TRACE("-> " << covbrHtml)
-                os << cTtl << ttl << cHead << mRb.str() << cTail;
-            }
-            os.close();
+            TRACE("-> " << covbrHtml)
+            os << cTtl << ttl << cHead << mRb.str() << cTail;
         }
+        os.close();
     }
+
     if (not ok)
     {
         TRACE_ERR("Error converting " << covbrTxt)
