@@ -1,5 +1,5 @@
 #include <fglob.h>
-#include <pyrepl.h>
+#include <pyregex.h>
 
 #define TRACE_ME
 #include <trace.h>

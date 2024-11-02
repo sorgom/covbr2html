@@ -23,7 +23,9 @@ public:
         mWb = wb;
     }
 
-    //  number of failed conversions
+    //  wait for all threads to finish
+    //  return: number of failed conversions
+    //  -> main return value
     INT32 ret();
 private:
     std::vector<std::thread> mThreads;

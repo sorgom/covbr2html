@@ -19,7 +19,7 @@ INT32 CovbrGlobber::ret()
     mThreads.clear();
     if (_ret != 0)
     {
-        std::cerr << _ret << " errors converting files\n";
+        std::cerr << _ret << " errors\n";
     }
     return _ret; 
 }
