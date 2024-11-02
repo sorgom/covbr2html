@@ -6,13 +6,19 @@ tmp_*.*
 stuff
 
 # temporary ignored
-Makefile
-*.make
+# Makefile
+# *.make
 *.sln
 *.vcxproj
 *.vcxproj.*
 .vs
 .vscode
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
 
 # Prerequisites
 *.d
