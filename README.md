@@ -1,6 +1,7 @@
 # covbr2html
 
-Bullseye code coverage provides a great tool: **covbr**
+## covbr
+Bullseye code coverage provides a great tool: **covbr**.
 
 ```shell
 $>covbr -h
@@ -25,21 +26,23 @@ Show low-level coverage measurements with annotated source code
 --no-banner           Suppress startup banner
 ```
 
-especially the **-u** option is what one needs:
+## -u option
+With the **-u** option we get a listing of all uncovered parts of all sources concerned.
+- see [sample output](sample_msbuild/todo_sample.txt)
 
-report only snippets containing uncovered parts
+## desired enhancement
+Currently the tool needs improvements:
+-   It reports all files - regardless if containing uncovered bits.
+-   The **--html** option delivers the same plain text wrapped in a pre.
 
-but the tool needs improvements:
--   it reports all files - regardless if containing uncovered bits
--   the **--html** option is a joke: just plain text wrapped in a pre
-
+## meanwhile: covbr2html
 **covbr2html** improves on this:
 -   removes fully covered files from listing
--   generates real highlighted stand-alone html 
+-   generates real highlighted stand-alone html
 
 ## C++ / Python
 -   use covbr2html.py in the [py folder](py)
--   build stand-alone executable from C++ code - see [make folder](make)
-
-
+-   build stand-alone executable from C++ code
+    - see [sample script for msbuild](sample_msbuild)
+    - see [make folder with Makefile](make)
 

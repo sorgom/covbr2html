@@ -2,20 +2,17 @@
 #include <SOM/pyregex.h>
 #include <SOM/fio.h>
 #include <filesystem>
-// #include <iostream>
 #include <fstream>
-#include <iso646.h>
 
 #define TRACE_ME
 #include <SOM/TraceMacros.h>
 
 using py::repl;
-// using std::cout, std::cerr, std::endl;
 using std::regex, std::regex_replace, std::regex_search;
 using std::string;
 using fpath = std::filesystem::path;
 
-bool Covbr2Html::convert(const std::string& covbrTxt, const bool wb, const bool hc)
+bool Covbr2Html::convert(const string& covbrTxt, const bool wb, const bool hc)
 {
     #define C_BEGIN "(?:^|(\\n))"
     #define C_ECLIP "(?: +\\.\\.\\.\\n)?"
