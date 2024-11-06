@@ -4,10 +4,11 @@ lab
 tmp.*
 tmp_*.*
 stuff
+*.cov
 
 # temporary ignored
-# Makefile
-# *.make
+Makefile
+*.make
 *.sln
 *.vcxproj
 *.vcxproj.*

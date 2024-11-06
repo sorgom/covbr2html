@@ -1,43 +1,52 @@
 #include <CovbrGlobber.h>
-
+#include <SOM/docOpts.h>
 #define TRACE_ME
-#include <trace.h>
+#include <SOM/TraceMacros.h>
 
 #include <filesystem>
 #include <iostream>
+#include <regex>
+
+const CONST_C_STRING cOpts =
+    "options:\n"
+    "-c  highlight covered items\n"
+    "-w  write back cleaned covbr text files\n"
+    "-h  this help\n"
+;
+
+void help(const CONST_C_STRING arg)
+{
+    std::cout
+        << "\nconvert covbr text files to html\n\n"
+        << "usage: " << std::filesystem::path(arg).filename().string() << " [options] covbr files\n"
+        << cOpts;
+    ;
+}
 
 INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
 {
-    TRACE_FUNC()
-    CovbrGlobber globber;
-
-    const std::string cWb  = "-w";
-    const std::string cHlp = "-h";
-
-    for (INT32 i = 1; i < argc; ++i)
+    TRACE_FUNC_TIME()
+    INT32 ret = 1;
+    DocOpts opts;
+    if (opts.process(cOpts, argc, argv))
     {
-        if (cWb == argv[i])
+        ret = 0;
+        if (opts.isSet('h'))
         {
-            globber.setWb();
+            help(argv[0]);
         }
-        else if (cHlp == argv[i])
+        else
         {
-            std::cout 
-                << "\nUsage: " << std::filesystem::path(argv[0]).filename().string() << " [options] covbr files\n"
-                << "options:\n"
-                << "-h  this help\n"
-                << "-w  write back cleaned covbr files\n"
-            ;
-            return 0;
+            CovbrGlobber globber;
+            globber.setWb(opts.isSet('w'));
+            globber.setHc(opts.isSet('c'));
+            for (INT32 i = 0; i < opts.argc(); ++i)
+            {
+                fglob(opts.args()[i], globber);
+            }
+            ret = globber.ret();
         }
     }
-    for (INT32 i = 1; i < argc; ++i)
-    {
-        TRACE_VAR(argv[i])
-        if (cWb != argv[i] and cHlp != argv[i])
-        {
-            fglob(argv[i], globber);
-        }
-    }
-    return globber.ret();
+    return ret;
 }
+
