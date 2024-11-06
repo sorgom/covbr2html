@@ -1,0 +1,72 @@
+k:/git/covbr2html/code/Covbr2Html.cpp:
+  ...
+        66
+        67     string buff;
+        68     const bool ok = read(buff, covbrTxt);
+-->T    69     if (
+  -->t             ok and
+  -->t                    regex_search(buff, reFile))
+        70     {
+        71         string rep;
+        72         {
+        73             TRACE_FLOW_TIME(clean txt)
+        74             rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDup, "\n$1$2", buff)));
+        75         }
+        76         //  if anything left
+-->T    77         if (regex_search(rep, reFile))
+        78         {
+        79             //  write text file if changed
+-->F    80             if (
+  -->f                     wb and
+  -->                             rep != buff)
+        81             {
+        82                 TRACE_FLOW_TIME(re-write source)
+        83                 std::ofstream os(covbrTxt);
+-->     84                 if (checkos(os, covbrTxt))
+        85                 {
+        86                     os << rep;
+        87                 }
+        88                 os.close();
+        89             }
+        90             {
+        91                 TRACE_FLOW_TIME(convert to html)
+-->T    92                 rep =   repl(re_tf, hc ? rep_tf_hc : rep_tf,
+-->T    93                         repl(re_X,  hc ? rep_X_hc  : rep_X,
+        94                         repl(re_x,  rep_x,
+        95                         repl(re_t,  rep_t,
+        96                         repl(re_f,  rep_f,
+  ...
+       106                 const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
+       107                 const string covbrHtml = repl(reExt, ".html", covbrTxt);
+       108                 std::ofstream os(covbrHtml);
+-->T   109                 if (checkos(os, covbrHtml))
+       110                 {
+       111                     os << cTtl << ttl << cHead << rep << cTail;
+       112                 }
+  ...
+k:/git/covbr2html/code/CovbrGlobber.cpp:
+  ...
+       13     TRACE_FUNC_TIME()
+X      14     for (auto& th : mThreads) th.join();
+       15     mThreads.clear();
+-->F   16     if (_ret != 0) std::cerr << _ret << " errors\n";
+       17     return _ret;
+       18 }
+       19
+X      20 void CovbrGlobber::threadFunc(const std::string&& file)
+       21 {
+       22     TRACE_FUNC_TIME()
+-->F   23     if (not Covbr2Html::convert(file, mWb, mHc)) ++_ret;
+       24 }
+       25
+k:/git/covbr2html/code/CovbrGlobber.h:
+k:/git/covbr2html/code/main.cpp:
+  ...
+       28     TRACE_FUNC_TIME()
+       29     INT32 ret = 1;
+       30     DocOpts opts;
+-->T   31     if (opts.process(cOpts, argc, argv))
+       32     {
+       33         ret = 0;
+TF     34         if (opts.isSet('h'))
+  ...

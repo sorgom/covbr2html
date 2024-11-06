@@ -5,6 +5,7 @@ tmp.*
 tmp_*.*
 stuff
 *.cov
+*.html
 
 # temporary ignored
 # Makefile
