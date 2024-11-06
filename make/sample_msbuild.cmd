@@ -5,12 +5,16 @@ SETLOCAL
 
 cd %~dp0
 cd ..
-set srcDir=%CD%\code
+set repo=%CD%
 set buildDir=%CD%\build
+set srcDir=%CD%\code
+set exe=%buildDir%\covbr2html.exe
 cd %~dp0
 
 set covcopt=--srcdir %srcDir% --macro
 set covfile=%buildDir%\sample.cov
+
+if exist %covfile% del %covfile%
 
 rem set vsVersion for premake5
 rem see premake5 --help for available options
@@ -37,7 +41,12 @@ call cov01 -q0
 
 :run
 rem run executable to generate coverage data
-call %buildDir%\covbr2html.exe >NUL
+call %exe% >NUL
+call %exe% -cw >NUL
+
+rem apply excusions
+call covselect -qd
+call covselect -q --import sample_BullseyeCoverageExclusions
 
 cd %srcDir%
 rem generate coverage report for source files
@@ -45,5 +54,5 @@ call covsrc -q --srcdir .
 rem generate covbr report
 call covbr -qu --srcdir . > %buildDir%\todo.txt
 rem generate html report using covbr2html
-call %buildDir%\covbr2html.exe -c %buildDir%\todo.txt
+call %exe% -c %buildDir%\todo.txt
 
