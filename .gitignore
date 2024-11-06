@@ -7,8 +7,8 @@ stuff
 *.cov
 
 # temporary ignored
-Makefile
-*.make
+# Makefile
+# *.make
 *.sln
 *.vcxproj
 *.vcxproj.*
