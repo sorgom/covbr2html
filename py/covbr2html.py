@@ -1,7 +1,7 @@
 """
-cleans covbr reports from fully covered files and creates html reports
+clean covbr reports from fully covered files and create html reports
 
-Usage: this script [options] files
+usage: this script [options] files
 options:
     -o  <directory> output directory
     -w  re-write cleaned covbr text files

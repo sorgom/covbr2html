@@ -31,6 +31,6 @@ done
 
 if [[ -n $txts ]]; then
   echo cleaning text files
-  $py $sompy/cleanTxt.py $txts
+  $py $sompy/cleanTxt.py -l $txts
 fi
 for file in $txts; do git add $file; done
