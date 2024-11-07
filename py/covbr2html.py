@@ -87,7 +87,7 @@ class Covbr2html(object):
         return f'{self.okb}{ind}{tag}{line}{self.oke}'
 
     def process(self, fp:str):
-        """cleans the txt file writes the html file"""
+        """clean txt file write html file"""
         if self.err: return
         with open(fp, 'r') as fh:
             oldc = fh.read()
