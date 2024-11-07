@@ -16,32 +16,41 @@ class CovbrGlobber : public I_GlobProcessor
 public:
     CovbrGlobber() = default;
 
+    inline ~CovbrGlobber()
+    {
+        join();
+    }
+
     //  I_GlobProcessor
     void process(CONST_C_STRING item) override;
 
     //  set write back input files
-    void setWb(bool wb = true)
+    inline void setWb(bool wb = true)
     {
         mWb = wb;
     }
-    void setHc(bool hc = true)
+    //  set highlight covered items
+    inline void setHc(bool hc = true)
     {
         mHc = hc;
     }
+    //  set output directory
+    bool setOdir(const CONST_C_STRING odir);
 
     //  wait for all threads to finish
-    //  return: number of failed conversions
+    //  return: number of failures
     //  -> end of main return
     INT32 ret();
 private:
     std::vector<std::thread> mThreads;
-    std::atomic<INT32> _ret = 0;
+    std::atomic<INT32> mRet = 0;
     bool mWb = false;
     bool mHc = false;
+    std::string mOdir;
+    bool mOk = true;
     void threadFunc(const std::string&& file);
-
+    void join();
     NOCOPY(CovbrGlobber)
 };
 
 #endif // _H
-

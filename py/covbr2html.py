@@ -1,15 +1,17 @@
 """
-cleans covbr reports from fully covered files and creates html reports
+clean covbr reports from fully covered files and create html reports
 
-Usage: this script [options] files
+usage: this script [options] files
 options:
+    -o  <directory> output directory
     -w  re-write cleaned covbr text files
     -c  highlight covered items
     -h  help
 """
 
 import re
-from os.path import isfile, dirname, basename
+from os.path import dirname, basename, join, isdir
+from os import makedirs
 from html import escape
 import sompy
 #   due to usage of match case
@@ -18,12 +20,22 @@ checkVersion.apply(3, 10, __file__)
 
 class Covbr2html(object):
     """covbr cleaner and html converter"""
-    def __init__(self, wb:bool=False, hc=False) -> None:
-        template = dirname(__file__) + '/covbr_template.html'
+    def __init__(self, wb:bool=False, hc=False, odir=None) -> None:
+        template = join(dirname(__file__), 'covbr_template.html')
         with open(template, 'r') as fh:
             self.template = fh.read()
             fh.close()
+        self.err = False
         self.wb = wb
+        self.odir = odir
+        if odir:
+            if not isdir(odir):
+                try:
+                    makedirs(odir)
+                except:
+                    print('cannot create output directory:', odir)
+                    self.err = True
+
         if hc:
             self.okb = '<i>'
             self.oke = '</i>'
@@ -41,12 +53,16 @@ class Covbr2html(object):
         self.rx_nok = re.compile(r'^( *)--&gt;(\w+)?( .*)?', re.M)
         self.cnt = 0
 
-    def write(self, fp:str, oldc:str, newc:str):
-        if newc != oldc:
-            with open(fp, 'w') as fh:
-                fh.write(newc)
-                fh.close()
-                self.cnt += 1
+    def ok(self):
+        return not self.err
+
+    def write(self, fp:str, newc:str):
+        if self.odir:
+            fp = join(self.odir, basename(fp))
+        with open(fp, 'w') as fh:
+            fh.write(newc)
+            fh.close()
+            self.cnt += 1
 
     #   indication: not covered
     def _replNok(self, mo):
@@ -71,7 +87,8 @@ class Covbr2html(object):
         return f'{self.okb}{ind}{tag}{line}{self.oke}'
 
     def process(self, fp:str):
-        """cleans the txt file writes the html file"""
+        """clean txt file write html file"""
+        if self.err: return
         with open(fp, 'r') as fh:
             oldc = fh.read()
             fh.close()
@@ -84,31 +101,25 @@ class Covbr2html(object):
 
             if not self.rxFile.search(newc): return
 
-            if self.wb:
-                self.write(fp, oldc, newc)
+            if self.wb and (self.odir or newc != oldc):
+                self.write(fp, newc)
 
             # create html
             newc = self.rx_ok.sub(self._replOk,
                     self.rx_nok.sub(self._replNok,
                         self.rx_fp.sub(r'\n<em>\1</em>\n', escape(newc)))).strip()
-            nfp = re.sub(r'\.\w+$', '', fp)
-            ttl = basename(nfp)
-            nfp = nfp + '.html'
+            fp = re.sub(r'\.\w+$', '', fp)
+            ttl = basename(fp)
             newc = self.template.replace('##TITLE', ttl, 1).replace('##CONTENT', newc, 1)
-            oldc = ''
-            if isfile(nfp):
-                with open(nfp, 'r') as fh:
-                    oldc = fh.read()
-                    fh.close()
-            self.write(nfp, oldc, newc)
+            self.write(fp + '.html', newc)
 
 if __name__ == '__main__':
     from docOpts import docOpts
     from globify import globify
 
     opts, args = docOpts(__doc__, reqArgs=True)
-    cb = Covbr2html(wb=opts.get('w', False), hc=opts.get('c', False))
-    for arg in globify(args):
-        cb.process(arg)
-    if cb.cnt: print('>', cb.cnt)
-
+    cb = Covbr2html(wb=opts.get('w', False), hc=opts.get('c', False), odir=opts.get('o'))
+    if cb.ok():
+        for arg in globify(args):
+            cb.process(arg)
+        if cb.cnt: print('>', cb.cnt)

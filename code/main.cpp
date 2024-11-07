@@ -9,8 +9,9 @@
 
 const CONST_C_STRING cOpts =
     "options:\n"
+    "-o  <directory> output to directory\n"
     "-c  highlight covered items\n"
-    "-w  write back cleaned covbr text files\n"
+    "-w  write cleaned covbr text files\n"
     "-h  this help\n"
 ;
 
@@ -26,7 +27,7 @@ void help(const CONST_C_STRING arg)
 INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
 {
     TRACE_FUNC_TIME()
-    INT32 ret = 1;
+    auto ret = 1;
     DocOpts opts;
     if (opts.process(cOpts, argc, argv))
     {
@@ -40,13 +41,16 @@ INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
             CovbrGlobber globber;
             globber.setWb(opts.isSet('w'));
             globber.setHc(opts.isSet('c'));
-            for (INT32 i = 0; i < opts.argc(); ++i)
+            CONST_C_STRING odir = nullptr;
+            if ((not opts.getValue(odir, 'o')) or globber.setOdir(odir))
             {
-                fglob(opts.args()[i], globber);
+                for (auto i = 0; i < opts.argc(); ++i)
+                {
+                    fglob(opts.args()[i], globber);
+                }
             }
             ret = globber.ret();
         }
     }
     return ret;
 }
-
