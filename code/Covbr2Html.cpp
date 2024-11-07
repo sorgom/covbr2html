@@ -71,6 +71,7 @@ bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const 
         const bool fWb = not odir.empty();
         const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
         const auto fname = fpath(covbrTxt).filename().string();
+        std::ofstream os;
 
         string rep;
         {
@@ -84,13 +85,11 @@ bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const 
             if (wb and (fWb or rep != buff))
             {
                 TRACE_FLOW_TIME(re-write source)
-                auto ofile = opath / fname;
-                std::ofstream os(ofile);
-                if (checkos(os, ofile.string()))
+                if (open(os, opath / fname))
                 {
                     os << rep;
+                    os.close();
                 }
-                os.close();
             }
             {
                 TRACE_FLOW_TIME(convert to html)
@@ -109,13 +108,11 @@ bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const 
             {
                 TRACE_FLOW_TIME(write html)
                 const string ttl = repl(reExt, "", fname);
-                const auto ofile = opath / repl(reExt, ".html", fname);
-                std::ofstream os(ofile);
-                if (checkos(os, ofile.string()))
+                if (open(os, opath / repl(reExt, ".html", fname)))
                 {
                     os << cTtl << ttl << cHead << rep << cTail;
+                    os.close();
                 }
-                os.close();
             }
         }
     }
