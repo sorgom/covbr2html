@@ -16,7 +16,7 @@ public:
     //  covbrTxt: source file name
     //  wb: write back cleaned sources
     //  hc: highlight covered parts
-    static bool convert(const std::string& covbrTxt, bool wb = false, bool hc = false);
+    static bool convert(const std::string& covbrTxt, const std::string& odir, bool wb = false, bool hc = false);
 
 private:
     static const CONST_C_STRING cTtl;
@@ -28,4 +28,3 @@ private:
 };
 
 #endif // _H
-

@@ -8,11 +8,11 @@
 #include <SOM/TraceMacros.h>
 
 using py::repl;
-using std::regex, std::regex_replace, std::regex_search;
+using std::regex, std::regex_search;
 using std::string;
 using fpath = std::filesystem::path;
 
-bool Covbr2Html::convert(const string& covbrTxt, const bool wb, const bool hc)
+bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const bool wb, const bool hc)
 {
     #define C_BEGIN "(?:^|(\\n))"
     #define C_ECLIP "(?: +\\.\\.\\.\\n)?"
@@ -68,6 +68,10 @@ bool Covbr2Html::convert(const string& covbrTxt, const bool wb, const bool hc)
     const bool ok = read(buff, covbrTxt);
     if (ok and regex_search(buff, reFile))
     {
+        const bool fWb = not odir.empty();
+        const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
+        const auto fname = fpath(covbrTxt).filename().string();
+
         string rep;
         {
             TRACE_FLOW_TIME(clean txt)
@@ -76,12 +80,13 @@ bool Covbr2Html::convert(const string& covbrTxt, const bool wb, const bool hc)
         //  if anything left
         if (regex_search(rep, reFile))
         {
-            //  write text file if changed
-            if (wb and rep != buff)
+            //  write text file if changed or output directory specified
+            if (wb and (fWb or rep != buff))
             {
                 TRACE_FLOW_TIME(re-write source)
-                std::ofstream os(covbrTxt);
-                if (checkos(os, covbrTxt))
+                auto ofile = opath / fname;
+                std::ofstream os(ofile);
+                if (checkos(os, ofile.string()))
                 {
                     os << rep;
                 }
@@ -103,10 +108,10 @@ bool Covbr2Html::convert(const string& covbrTxt, const bool wb, const bool hc)
             //  write html file
             {
                 TRACE_FLOW_TIME(write html)
-                const string ttl = repl(reExt, "", fpath(covbrTxt).filename().string());
-                const string covbrHtml = repl(reExt, ".html", covbrTxt);
-                std::ofstream os(covbrHtml);
-                if (checkos(os, covbrHtml))
+                const string ttl = repl(reExt, "", fname);
+                const auto ofile = opath / repl(reExt, ".html", fname);
+                std::ofstream os(ofile);
+                if (checkos(os, ofile.string()))
                 {
                     os << cTtl << ttl << cHead << rep << cTail;
                 }
@@ -144,4 +149,3 @@ const CONST_C_STRING Covbr2Html::cHead =
     "<p>";
 
 const CONST_C_STRING Covbr2Html::cTail = "</p></body></html>\n";
-
