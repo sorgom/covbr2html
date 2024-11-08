@@ -6,6 +6,9 @@ buildoptions_vs = '/std:c++17 /MP /W4 /O2 /Ot /wd4100 /wd4103'
 -- /wd4244 illegal conversion
 buildoptions_gcc = '-std=c++17 -O3 -pedantic-errors -Wall'
 
+somcpp = '../submodules/somcpp/'
+somsrc = somcpp .. 'src/'
+
 workspace 'covbr2html'
 
     configurations { 'ci', 'trace_on', 'trace_all' }
@@ -16,7 +19,7 @@ workspace 'covbr2html'
     optimize 'Speed'
     kind 'ConsoleApp'
 
-    includedirs { '../code', '../somcpp/include' }
+    includedirs { '../code', somcpp .. '/include' }
 
     filter { 'action:vs*' }
         warnings 'high'
@@ -35,9 +38,9 @@ workspace 'covbr2html'
     project 'covbr2html'
         files { 
             '../code/*.cpp',
-            '../somcpp/src/fglob.cpp',
-            '../somcpp/src/fio.cpp', 
-            '../somcpp/src/docOpts.cpp', 
+            somsrc .. 'fglob.cpp',
+            somsrc .. 'fio.cpp', 
+            somsrc .. 'docOpts.cpp', 
         }
   
     -- project 'lab'

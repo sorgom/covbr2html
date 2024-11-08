@@ -21,7 +21,7 @@ endif
 RESCOMP = windres
 TARGETDIR = ../build
 TARGET = $(TARGETDIR)/covbr2html
-INCLUDES += -I../code -I../somcpp/include
+INCLUDES += -I../code -I../submodules/somcpp/include
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O3 -std=c++17 -O3 -pedantic-errors -Wall
@@ -146,13 +146,13 @@ $(OBJDIR)/CovbrGlobber.o: ../code/CovbrGlobber.cpp
 $(OBJDIR)/main.o: ../code/main.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/docOpts.o: ../somcpp/src/docOpts.cpp
+$(OBJDIR)/docOpts.o: ../submodules/somcpp/src/docOpts.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/fglob.o: ../somcpp/src/fglob.cpp
+$(OBJDIR)/fglob.o: ../submodules/somcpp/src/fglob.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/fio.o: ../somcpp/src/fio.cpp
+$(OBJDIR)/fio.o: ../submodules/somcpp/src/fio.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

@@ -1,8 +1,8 @@
 [submodule "sompy"]
-	path = sompy
+	path = submodules/sompy
 	url = git@github.com:sorgom/sompy.git
 	branch = dev
 [submodule "somcpp"]
-	path = somcpp
+	path = submodules/somcpp
 	url = git@github.com:sorgom/somcpp.git
 	branch = dev
