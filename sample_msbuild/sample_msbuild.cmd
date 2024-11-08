@@ -14,10 +14,11 @@ cd ..
 set buildDir=%CD%\build
 set srcDir=%CD%\code
 set makeDir=%CD%\make
+set reportsDir=%CD%\sample_reports
 
 set exe=%buildDir%\covbr2html.exe
 set todoTxt=%buildDir%\todo_%~n0.txt
-set buildReport=%buildDir%\buildReport.txt
+set buildReport=%buildDir%\build.log
 
 rem set code folder to base
 rem activate macro coverage
@@ -25,30 +26,29 @@ set covcopt=--srcdir %srcDir% --macro
 rem set individual coverage file
 set covfile=%buildDir%\%~n0.cov
 
-if exist %covfile% del %covfile%
-if exist %todoTxt% del %todoTxt%
+del /Q %covfile% %todoTxt% %reportsDir%\*.* >NUL 2>&1
 
 cd %makeDir%
 
 echo - gen
 rem generate project files
-rem exit unless premake5 is available
+rem requires premake5
 premake5 %vsVersion%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo - build
 rem clean solution
-rem exit unless msbuild is available
+rem requires msbuild
 msbuild covbr2html.sln -t:clean >NUL
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 rem activate coverage instrumentation
-rem exit unless cov01 is available
+rem requires bullseye coverage tools
 cov01 -q1
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-rem build the project
-rem turn of coverage instrumentation
+rem build solution
+rem turn off coverage instrumentation
 msbuild covbr2html.sln > %buildReport%
 set elevel=%errorlevel%
 cov01 -q0
@@ -59,11 +59,10 @@ if %elevel% neq 0 (
 )
 
 echo - run
-:run
 rem run executable to generate coverage data
 %exe% -h >NUL
 %exe% -c %myDir%\todo_*.txt >NUL
-del %mydir%\todo_*.html
+del /Q %mydir%\todo_*.html 2>NUL
 
 rem apply exclusions
 covselect -qd --import %myDir%\sample_BullseyeCoverageExclusions
@@ -76,4 +75,4 @@ echo - todo html
 rem generate covbr report
 covbr -qu --srcdir . > %todoTxt%
 rem generate html report using covbr2html
-%exe% -c %todoTxt%
+%exe% -cwo %reportsDir% %todoTxt%

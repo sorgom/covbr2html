@@ -1,8 +1,10 @@
 # specific
 build
+sample_reports
 lab
 tmp.*
 tmp_*.*
+tmp/
 stuff
 *.cov
 *.html
