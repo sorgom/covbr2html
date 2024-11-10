@@ -40,7 +40,7 @@ workspace 'covbr2html'
             '../code/*.cpp',
             somsrc .. 'fglob.cpp',
             somsrc .. 'fio.cpp', 
-            somsrc .. 'docOpts.cpp', 
+            somsrc .. 'docopts.cpp', 
         }
   
     -- project 'lab'

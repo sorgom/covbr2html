@@ -114,12 +114,12 @@ class Covbr2html(object):
             self.write(fp + '.html', newc)
 
 if __name__ == '__main__':
-    from docOpts import docOpts
-    from globify import globify
+    from docopts import docopts
+    from fglob import fglob
 
-    opts, args = docOpts(__doc__, reqArgs=True)
+    opts, args = docopts(__doc__, reqArgs=True)
     cb = Covbr2html(wb=opts.get('w', False), hc=opts.get('c', False), odir=opts.get('o'))
     if cb.ok():
-        for arg in globify(args):
+        for arg in fglob(args):
             cb.process(arg)
         if cb.cnt: print('>', cb.cnt)

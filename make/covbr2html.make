@@ -64,13 +64,13 @@ OBJECTS :=
 
 GENERATED += $(OBJDIR)/Covbr2Html.o
 GENERATED += $(OBJDIR)/CovbrGlobber.o
-GENERATED += $(OBJDIR)/docOpts.o
+GENERATED += $(OBJDIR)/docopts.o
 GENERATED += $(OBJDIR)/fglob.o
 GENERATED += $(OBJDIR)/fio.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Covbr2Html.o
 OBJECTS += $(OBJDIR)/CovbrGlobber.o
-OBJECTS += $(OBJDIR)/docOpts.o
+OBJECTS += $(OBJDIR)/docopts.o
 OBJECTS += $(OBJDIR)/fglob.o
 OBJECTS += $(OBJDIR)/fio.o
 OBJECTS += $(OBJDIR)/main.o
@@ -146,7 +146,7 @@ $(OBJDIR)/CovbrGlobber.o: ../code/CovbrGlobber.cpp
 $(OBJDIR)/main.o: ../code/main.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/docOpts.o: ../submodules/somcpp/src/docOpts.cpp
+$(OBJDIR)/docopts.o: ../submodules/somcpp/src/docopts.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/fglob.o: ../submodules/somcpp/src/fglob.cpp
