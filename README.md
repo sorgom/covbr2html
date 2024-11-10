@@ -28,7 +28,7 @@ Show low-level coverage measurements with annotated source code
 
 ## -u option
 With the **-u** option we get a listing of all uncovered parts of all sources concerned.
-- see [sample output](sample_msbuild/todo_sample.txt)
+- see [sample output](sample_msbuild/covbr_sample.txt)
 
 ## desired enhancement
 Currently the tool needs improvements:
@@ -45,4 +45,3 @@ Currently the tool needs improvements:
 -   build stand-alone executable from C++ code
     - see [sample script for msbuild](sample_msbuild)
     - see [make folder with Makefile](make)
-
