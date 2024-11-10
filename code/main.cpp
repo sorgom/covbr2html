@@ -1,5 +1,5 @@
 #include <CovbrGlobber.h>
-#include <SOM/docOpts.h>
+#include <SOM/docopts.h>
 #define TRACE_ME
 #include <SOM/TraceMacros.h>
 
