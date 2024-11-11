@@ -6,6 +6,7 @@ options:
     -o  <directory> output directory
     -w  re-write cleaned covbr text files
     -c  highlight covered items
+    -f  show fully covered sources
     -h  help
 """
 
@@ -20,13 +21,14 @@ checkVersion.apply(3, 10, __file__)
 
 class Covbr2html(object):
     """covbr cleaner and html converter"""
-    def __init__(self, wb:bool=False, hc=False, odir=None) -> None:
+    def __init__(self, wb:bool=False, hc=False, odir=None, fc=False) -> None:
         template = join(dirname(__file__), 'covbr_template.html')
         with open(template, 'r') as fh:
             self.template = fh.read()
             fh.close()
         self.err = False
         self.wb = wb
+        self.fc = fc
         self.odir = odir
         if odir:
             if not isdir(odir):
@@ -42,17 +44,15 @@ class Covbr2html(object):
         else:
             self.okb = ''
             self.oke = ''
-        self.rFile = r'(?:\w+:/?)?\w+(?:/\w+)*\.(?:cpp|h(?:pp)?):'
-        self.rEclip = r'(?: +\.\.\.\n)?'
-        self.rxFile = re.compile(rf'^{self.rFile}', re.M)
-        self.rxDouble = re.compile(rf'^{self.rEclip}(?:{self.rFile}\n)*({self.rFile})', re.M)
-        self.rxTail = re.compile(rf'{self.rEclip}(?:{self.rFile})?\s*$')
-        self.rxSpc = re.compile(rf'\s+(\n{self.rFile})')
-        self.rx_fp = re.compile(rf'^\n*({self.rFile})\n*', re.M)
+        rFile = r'(?:\w+:/?)?\w+(?:/\w+)*\.(?:cpp|h(?:pp)?):'
+        self.rxFile = re.compile(rf'^({rFile})', re.M)
+        self.rxFiles = re.compile(rf'^((?:{rFile}\n)*)({rFile})\n*', re.M)
+        self.rxDouble = re.compile(rf'^((?:{rFile}\n)*{rFile})\n({rFile})', re.M)
+        self.rxTail = re.compile(rf'({rFile})?\s*$')
+        self.rx_fp = re.compile(rf'^\n*({rFile})\n*', re.M)
         self.rx_ok = re.compile(r'^( *)(X|TF|tf)(?:$| (.*))', re.M)
         self.rx_nok = re.compile(r'^( *)--&gt;(\w+)?( .*)?', re.M)
         self.cnt = 0
-
     def ok(self):
         return not self.err
 
@@ -86,6 +86,9 @@ class Covbr2html(object):
                 tag = f'<u>{what}</u> '
         return f'{self.okb}{ind}{tag}{line}{self.oke}'
 
+    def _replDouble(self, mo):
+        return f'{self.okb}{mo.group(1)}{self.oke}<em>{mo.group(2)}</em>\n'
+
     def process(self, fp:str):
         """clean txt file write html file"""
         if self.err: return
@@ -94,10 +97,13 @@ class Covbr2html(object):
             fh.close()
             if not self.rxFile.search(oldc): return
             # clean txt
-            newc = re.sub(r'\s+$', '',
-                self.rxTail.sub('',
-                    self.rxSpc.sub(r'\n\1',
-                        self.rxDouble.sub(r'\n\1', oldc.replace('\r', ''))))) + '\n'
+            newc = ''
+            if self.fc:
+                newc = oldc
+            else:
+                newc = re.sub(r'\s+$', '',
+                    self.rxTail.sub('',
+                        self.rxFiles.sub(r'\n\2', oldc))) + '\n'
 
             if not self.rxFile.search(newc): return
 
@@ -105,9 +111,13 @@ class Covbr2html(object):
                 self.write(fp, newc)
 
             # create html
-            newc = self.rx_ok.sub(self._replOk,
-                    self.rx_nok.sub(self._replNok,
-                        self.rx_fp.sub(r'\n<em>\1</em>\n', escape(newc)))).strip()
+            newc = escape(newc)
+            if self.fc:
+                newc = self.rxFiles.sub(self._replDouble, newc).replace('<i></i>', '').replace('\n</i>', '</i>\n')
+            else:
+                newc = self.rxFile.sub(r'<em>\1</em>\n', newc)
+            newc = self.rx_ok.sub(self._replOk, self.rx_nok.sub(self._replNok, newc)).strip()
+
             fp = re.sub(r'\.\w+$', '', fp)
             ttl = basename(fp)
             newc = self.template.replace('##TITLE', ttl, 1).replace('##CONTENT', newc, 1)
@@ -118,7 +128,7 @@ if __name__ == '__main__':
     from fglob import fglob
 
     opts, args = docopts(__doc__, reqArgs=True)
-    cb = Covbr2html(wb=opts.get('w', False), hc=opts.get('c', False), odir=opts.get('o'))
+    cb = Covbr2html(wb=opts.get('w', False), hc=opts.get('c', False), fc=opts.get('f', False), odir=opts.get('o'))
     if cb.ok():
         for arg in fglob(args):
             cb.process(arg)

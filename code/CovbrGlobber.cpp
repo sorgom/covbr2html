@@ -37,7 +37,7 @@ INT32 CovbrGlobber::ret()
 void CovbrGlobber::threadFunc(const std::string&& file)
 {
     TRACE_FUNC_TIME()
-    if (not Covbr2Html::convert(file, mOdir, mWb, mHc)) ++mRet;
+    if (not Covbr2Html::convert(file, mOdir, mWb, mHc, mFc)) ++mRet;
 }
 
 void CovbrGlobber::join()

@@ -12,22 +12,21 @@ using std::regex, std::regex_search;
 using std::string;
 using fpath = std::filesystem::path;
 
-bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const bool wb, const bool hc)
+bool Covbr2Html::convert(
+    const string& covbrTxt,
+    const std::string& odir,
+    const bool wb, const bool hc, const bool fc)
 {
     #define C_BEGIN "(?:^|(\\n))"
-    #define C_ECLIP "(?: +\\.\\.\\.\\n)?"
     #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):"
 
     //  txt file cleanup
-    static const regex reDup(
+    static const regex reFiles(
         C_BEGIN
-        C_ECLIP
-        "(?:" C_FILE "\\n)*"
+        "((?:" C_FILE "\\n)*)"
         "("   C_FILE ")"
     );
-    static const regex reSpc("\\s+(\\n" C_FILE ")");
     static const regex reFile(C_BEGIN "("  C_FILE ")");
-
     static const regex reTail(C_FILE "\\s+$");
 
     // html conversion
@@ -40,10 +39,13 @@ bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const 
     static const regex re_tf(C_BEGIN_B "(TF|tf)\\b(.*)");
     static const regex re_X (C_BEGIN_B "X\\b(.*)");
 
-    static const CONST_C_STRING rep_tf = "$1$2<u>$3</u>$4";
-    static const CONST_C_STRING rep_X  = "$1$2 $3";
-    static const CONST_C_STRING rep_tf_hc = "$1<i>$2<u>$3</u>$4</i>";
-    static const CONST_C_STRING rep_X_hc  = "$1<i>$2 $3</i>";
+    const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
+    const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>" : "$1$2 $3";
+    const CONST_C_STRING rep_Files  = hc ? "$1<i>$2</i><em>$3</em>" : "$1$2<em>$3</em>";
+
+    // highlighting clean up
+    static const regex re_ie ("<i></i>");
+    static const regex re_ib ("\\n</i>");
 
     #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
     #define C_CONT "(?: (.*))?"
@@ -74,9 +76,14 @@ bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const 
         std::ofstream os;
 
         string rep;
+        if (fc)
+        {
+            rep = buff;
+        }
+        else
         {
             TRACE_FLOW_TIME(clean txt)
-            rep = repl(reTail, "", repl(reSpc, "\n$1", repl(reDup, "\n$1$2", buff)));
+            rep = repl(reTail, "", repl(reFiles, "$1$3", buff));
         }
         //  if anything left
         if (regex_search(rep, reFile))
@@ -93,16 +100,28 @@ bool Covbr2Html::convert(const string& covbrTxt, const std::string& odir, const 
             }
             {
                 TRACE_FLOW_TIME(convert to html)
-                rep =   repl(re_tf, hc ? rep_tf_hc : rep_tf,
-                        repl(re_X,  hc ? rep_X_hc  : rep_X,
+                //  html escape
+                rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)));
+
+                if (fc)
+                {
+                    rep = repl(reFiles, rep_Files, rep);
+                    if (hc)
+                    {
+                        rep = repl(re_ib, "</i>\n", repl(re_ie, "", rep));
+                    }
+                }
+                else {
+                    rep = repl(reFile, "$1<em>$2</em>", rep);
+                }
+                rep =   repl(re_tf, rep_tf,
+                        repl(re_X,  rep_X,
                         repl(re_x,  rep_x,
                         repl(re_t,  rep_t,
                         repl(re_f,  rep_f,
                         repl(re_T,  rep_T,
-                        repl(re_F,  rep_F,
-                        repl(reFile, "$1<em>$2</em>",
-                        repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)
-                    ))))))))));
+                        repl(re_F,  rep_F, rep
+                    )))))));
             }
             //  write html file
             {
@@ -139,7 +158,7 @@ const CONST_C_STRING Covbr2Html::cHead =
     "s { color: red; font-weight: bold; }\n"
     "b { background-color: hsl(355,100%,91%); }\n"
     "i { background-color: hsl(120,100%,93%); }\n"
-    "em { font-weight: bold; font-size:12pt; }\n"
+    "em { font-weight: bold; }\n"
     "</style>\n"
     "</head>\n"
     "<body>\n"

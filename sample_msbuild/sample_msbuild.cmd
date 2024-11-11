@@ -30,23 +30,25 @@ del /Q %covfile% %todoTxt% %reportsDir%\*.* >NUL 2>&1
 
 cd %makeDir%
 
-echo - gen
+echo - premake5
 rem generate project files
 rem requires premake5
 premake5 %vsVersion%
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-echo - build
+echo - msbuild clean
 rem clean solution
 rem requires msbuild
 msbuild covbr2html.sln -t:clean >NUL
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo - bullseye on
 rem activate coverage instrumentation
 rem requires bullseye coverage tools
 cov01 -q1
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo - msbuild solution
 rem build solution
 rem turn off coverage instrumentation
 msbuild covbr2html.sln > %buildReport%
@@ -61,13 +63,13 @@ if %elevel% neq 0 (
 echo - run
 rem run executable to generate coverage data
 %exe% -h >NUL
-%exe% -c %myDir%\todo_*.txt >NUL
-del /Q %mydir%\todo_*.html 2>NUL
+%exe% -cwo %buildDir% %myDir%\covbr_*.txt >NUL
+del /Q %buildDir%\*.html %buildDir%\*.txt 2>NUL
 
 rem apply exclusions
 covselect -qd --import %myDir%\sample_BullseyeCoverageExclusions
 
-echo - report
+for %%n in (%reportsDir%) do echo - report to %%~nn folder
 cd %srcDir%
 rem generate coverage report for source files
 covsrc -q --srcdir .

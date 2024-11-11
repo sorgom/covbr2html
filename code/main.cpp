@@ -11,6 +11,7 @@ const CONST_C_STRING cOpts =
     "options:\n"
     "-o  <directory> output to directory\n"
     "-c  highlight covered items\n"
+    "-f  keep fully covered sources listed\n"
     "-w  write cleaned covbr text files\n"
     "-h  this help\n"
 ;
@@ -41,6 +42,7 @@ INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
             CovbrGlobber globber;
             globber.setWb(opts.isSet('w'));
             globber.setHc(opts.isSet('c'));
+            globber.setFc(opts.isSet('f'));
             CONST_C_STRING odir = nullptr;
             if ((not opts.getValue(odir, 'o')) or globber.setOdir(odir))
             {
