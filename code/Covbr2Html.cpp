@@ -17,13 +17,17 @@ bool Covbr2Html::convert(
     const std::string& odir,
     const bool wb, const bool hc, const bool fc)
 {
+    TRACE_VAR(wb)
+    TRACE_VAR(hc)
+    TRACE_VAR(fc)
+    TRACE_FUNC_TIME()
     #define C_BEGIN "(?:^|(\\n))"
     #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):"
 
     //  txt file cleanup
     static const regex reFiles(
         C_BEGIN
-        "((?:" C_FILE "\\n)*)"
+        "((?:" C_FILE "\\r?\\n)+)"
         "("   C_FILE ")"
     );
     static const regex reFile(C_BEGIN "("  C_FILE ")");
@@ -68,8 +72,11 @@ bool Covbr2Html::convert(
 
     string buff;
     const bool ok = read(buff, covbrTxt);
-    if (ok and regex_search(buff, reFile))
+    TRACE_VAR(ok)
+    // if (ok and regex_search(buff, reFile))
+    if (ok)
     {
+        TRACE_FLOW_TIME(processing file)
         const bool fWb = not odir.empty();
         const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
         const auto fname = fpath(covbrTxt).filename().string();
@@ -78,12 +85,14 @@ bool Covbr2Html::convert(
         string rep;
         if (fc)
         {
+            TRACE_FLOW(fc)
             rep = buff;
         }
         else
         {
-            TRACE_FLOW_TIME(clean txt)
+            TRACE_FLOW(clean txt)
             rep = repl(reTail, "", repl(reFiles, "$1$3", buff));
+            TRACE_VAR(rep)
         }
         //  if anything left
         if (regex_search(rep, reFile))
@@ -122,6 +131,7 @@ bool Covbr2Html::convert(
                         repl(re_T,  rep_T,
                         repl(re_F,  rep_F, rep
                     )))))));
+                TRACE_VAR(rep)
             }
             //  write html file
             {
