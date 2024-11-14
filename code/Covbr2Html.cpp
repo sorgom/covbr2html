@@ -1,8 +1,15 @@
 #include <Covbr2Html.h>
-#include <SOM/pyregex.h>
 #include <SOM/fio.h>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+
+// see:
+// https://stackoverflow.com/questions/42909618/a-simple-c11-regex-that-throws-regex-error-while-searching
+#ifdef _MSC_VER
+#define _REGEX_MAX_STACK_COUNT 200000
+#endif
+#include <SOM/pyregex.h>
 
 #define TRACE_ME
 #include <SOM/TraceMacros.h>
@@ -17,9 +24,6 @@ bool Covbr2Html::convert(
     const std::string& odir,
     const bool wb, const bool hc, const bool fc)
 {
-    TRACE_VAR(wb)
-    TRACE_VAR(hc)
-    TRACE_VAR(fc)
     TRACE_FUNC_TIME()
     #define C_BEGIN "(?:^|(\\n))"
     #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):"
@@ -27,7 +31,7 @@ bool Covbr2Html::convert(
     //  txt file cleanup
     static const regex reFiles(
         C_BEGIN
-        "((?:" C_FILE "\\r?\\n)+)"
+        "((?:" C_FILE "\\r?\\n)*)"
         "("   C_FILE ")"
     );
     static const regex reFile(C_BEGIN "("  C_FILE ")");
@@ -49,7 +53,7 @@ bool Covbr2Html::convert(
 
     // highlighting clean up
     static const regex re_ie ("<i></i>");
-    static const regex re_ib ("\\n</i>");
+    static const regex re_ib ("(\\r)?\\n</i>");
 
     #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
     #define C_CONT "(?: (.*))?"
@@ -71,78 +75,81 @@ bool Covbr2Html::convert(
     static const regex reExt("\\.\\w+$");
 
     string buff;
-    const bool ok = read(buff, covbrTxt);
-    TRACE_VAR(ok)
+    bool ok = read(buff, covbrTxt);
     // if (ok and regex_search(buff, reFile))
     if (ok)
     {
-        TRACE_FLOW_TIME(processing file)
-        const bool fWb = not odir.empty();
-        const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
-        const auto fname = fpath(covbrTxt).filename().string();
-        std::ofstream os;
-
-        string rep;
-        if (fc)
+        try
         {
-            TRACE_FLOW(fc)
-            rep = buff;
-        }
-        else
-        {
-            TRACE_FLOW(clean txt)
-            rep = repl(reTail, "", repl(reFiles, "$1$3", buff));
-            TRACE_VAR(rep)
-        }
-        //  if anything left
-        if (regex_search(rep, reFile))
-        {
-            //  write text file if changed or output directory specified
-            if (wb and (fWb or rep != buff))
+            TRACE_FLOW_TIME(processing file)
+            const bool fWb = not odir.empty();
+            const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
+            const auto fname = fpath(covbrTxt).filename().string();
+            std::ofstream os;
+            string rep;
+            if (fc)
             {
-                TRACE_FLOW_TIME(re-write source)
-                if (open(os, opath / fname))
-                {
-                    os << rep;
-                    os.close();
-                }
+                rep = buff;
             }
+            else
             {
-                TRACE_FLOW_TIME(convert to html)
-                //  html escape
-                rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)));
-
-                if (fc)
+                TRACE_FLOW_TIME(clean txt)
+                rep = repl(reTail, "", repl(reFiles, "$1$3", buff));
+            }
+            //  if anything left
+            if (regex_search(rep, reFile))
+            {
+                //  write text file if changed or output directory specified
+                if (wb and (fWb or rep != buff))
                 {
-                    rep = repl(reFiles, rep_Files, rep);
-                    if (hc)
+                    TRACE_FLOW_TIME(re-write source)
+                    if (open(os, opath / fname))
                     {
-                        rep = repl(re_ib, "</i>\n", repl(re_ie, "", rep));
+                        os << rep;
+                        os.close();
                     }
                 }
-                else {
-                    rep = repl(reFile, "$1<em>$2</em>", rep);
-                }
-                rep =   repl(re_tf, rep_tf,
-                        repl(re_X,  rep_X,
-                        repl(re_x,  rep_x,
-                        repl(re_t,  rep_t,
-                        repl(re_f,  rep_f,
-                        repl(re_T,  rep_T,
-                        repl(re_F,  rep_F, rep
-                    )))))));
-                TRACE_VAR(rep)
-            }
-            //  write html file
-            {
-                TRACE_FLOW_TIME(write html)
-                const string ttl = repl(reExt, "", fname);
-                if (open(os, opath / repl(reExt, ".html", fname)))
                 {
-                    os << cTtl << ttl << cHead << rep << cTail;
-                    os.close();
+                    TRACE_FLOW_TIME(convert to html)
+                    //  html escape
+                    rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)));
+
+                    if (fc)
+                    {
+                        rep = repl(reFiles, rep_Files, rep);
+                        if (hc)
+                        {
+                            rep = repl(re_ib, "</i>$1\n", repl(re_ie, "", rep));
+                        }
+                    }
+                    else {
+                        rep = repl(reFile, "$1<em>$2</em>", rep);
+                    }
+                    rep =   repl(re_tf, rep_tf,
+                            repl(re_X,  rep_X,
+                            repl(re_x,  rep_x,
+                            repl(re_t,  rep_t,
+                            repl(re_f,  rep_f,
+                            repl(re_T,  rep_T,
+                            repl(re_F,  rep_F, rep
+                        )))))));
+                }
+                //  write html file
+                {
+                    TRACE_FLOW_TIME(write html)
+                    const string ttl = repl(reExt, "", fname);
+                    if (open(os, opath / repl(reExt, ".html", fname)))
+                    {
+                        os << cTtl << ttl << cHead << rep << cTail;
+                        os.close();
+                    }
                 }
             }
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << (e.what()) << '\n';
+            ok = false;
         }
     }
     return ok;
