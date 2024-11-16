@@ -25,35 +25,33 @@ bool Covbr2Html::convert(
     const bool wb, const bool hc, const bool fc)
 {
     TRACE_FUNC_TIME()
-    #define C_BEGIN "(?:^|(\\n))"
-    #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h):"
+    #define C_BEGIN "(?:^|(\\r?\\n))"
+    #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h|hpp):"
 
-    //  txt file cleanup
-    static const regex reFiles(
-        C_BEGIN
-        "((?:" C_FILE "\\r?\\n)*)"
-        "("   C_FILE ")"
-    );
-    static const regex reFile(C_BEGIN "("  C_FILE ")");
+    //  single file
+    static const regex reFile(C_BEGIN "(" C_FILE ")");
+    //  multiple files no catch
+    static const regex reFiles(C_BEGIN "(?:" C_FILE "\\r?\\n)*" C_FILE);
+    //  multiple files catch last
+    static const regex reDouble(C_BEGIN "(?:" C_FILE "\\r?\\n)*(" C_FILE ")");
+    //  tailing file
     static const regex reTail(C_FILE "\\s+$");
 
+
     // html conversion
+    static const regex reFileEm(C_BEGIN "(" C_FILE "</em>)");
     static const regex reAmp("&");
     static const regex reLt("<");
     static const regex reGt(">");
 
     #define C_BEGIN_B C_BEGIN "( *)"
+
     // OK cases & replacements
     static const regex re_tf(C_BEGIN_B "(TF|tf)\\b(.*)");
     static const regex re_X (C_BEGIN_B "X\\b(.*)");
 
     const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
     const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>" : "$1$2 $3";
-    const CONST_C_STRING rep_Files  = hc ? "$1<i>$2</i><em>$3</em>" : "$1$2<em>$3</em>";
-
-    // highlighting clean up
-    static const regex re_ie ("<i></i>");
-    static const regex re_ib ("(\\r)?\\n</i>");
 
     #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
     #define C_CONT "(?: (.*))?"
@@ -71,6 +69,9 @@ bool Covbr2Html::convert(
     static const CONST_C_STRING rep_T  = C_SPAN "<u>T</u><s>F</s>   $3</b>";
     static const CONST_C_STRING rep_F  = C_SPAN "<s>T</s><u>F</u>   $3</b>";
 
+    //  clean <i> line breaks
+    #define C_ITAL "<___i___>"
+    static const regex re_ital(C_ITAL "(\\r?\\n)");
     //  file extension
     static const regex reExt("\\.\\w+$");
 
@@ -87,6 +88,7 @@ bool Covbr2Html::convert(
             const auto fname = fpath(covbrTxt).filename().string();
             std::ofstream os;
             string rep;
+            const string& clText = fc ? buff : rep;
             if (fc)
             {
                 rep = buff;
@@ -94,7 +96,7 @@ bool Covbr2Html::convert(
             else
             {
                 TRACE_FLOW_TIME(clean txt)
-                rep = repl(reTail, "", repl(reFiles, "$1$3", buff));
+                rep = repl(reTail, "", repl(reDouble, "$1$2", buff));
             }
             //  if anything left
             if (regex_search(rep, reFile))
@@ -112,14 +114,14 @@ bool Covbr2Html::convert(
                 {
                     TRACE_FLOW_TIME(convert to html)
                     //  html escape
-                    rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", rep)));
+                    rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", clText)));
 
                     if (fc)
                     {
-                        rep = repl(reFiles, rep_Files, rep);
+                        rep = repl(reFileEm, "$1<em>$2", repl(reFiles, "$0</em>", rep));
                         if (hc)
                         {
-                            rep = repl(re_ib, "</i>$1\n", repl(re_ie, "", rep));
+                            rep = repl(re_ital, "$1<i>", repl(reFiles, C_ITAL "$0</i>", rep));
                         }
                     }
                     else {

@@ -56,7 +56,6 @@ class Covbr2html(object):
         #   single file with emphasis end tag
         self.rxFileEm = re.compile(rf'^{rFile}</em>', re.M)
 
-        self.rxFile = re.compile(rf'^{rFile}', re.M)
         self.rxTail = re.compile(rf'({rFile})?\s*$')
         self.rx_fp = re.compile(rf'^\n*({rFile})\n*', re.M)
         self.rx_ok = re.compile(r'^( *)(X|TF|tf)(?:$| (.*))', re.M)
