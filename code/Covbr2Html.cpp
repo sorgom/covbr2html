@@ -6,9 +6,9 @@
 
 // see:
 // https://stackoverflow.com/questions/42909618/a-simple-c11-regex-that-throws-regex-error-while-searching
-#ifdef _MSC_VER
-#define _REGEX_MAX_STACK_COUNT 200000
-#endif
+// #ifdef _MSC_VER
+// #define _REGEX_MAX_STACK_COUNT 200000
+// #endif
 #include <SOM/pyregex.h>
 
 #define TRACE_ME
@@ -48,7 +48,7 @@ bool Covbr2Html::convert(
 
     // OK cases & replacements
     static const regex re_tf(C_BEGIN_B "(TF|tf)\\b(.*)");
-    static const regex re_X (C_BEGIN_B "X\\b(.*)");
+    static const regex re_X (C_BEGIN_B "X\\b([^:].*)?");
 
     const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
     const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>" : "$1$2 $3";
@@ -71,18 +71,18 @@ bool Covbr2Html::convert(
 
     //  clean <i> line breaks
     #define C_ITAL "<___i___>"
-    static const regex re_ital(C_ITAL "(\\r?\\n)");
+    static const regex re_ital(C_ITAL "(\\r?\\n)?");
     //  file extension
     static const regex reExt("\\.\\w+$");
 
-    string buff;
-    bool ok = read(buff, covbrTxt);
-    // if (ok and regex_search(buff, reFile))
-    if (ok)
+    bool ok = false;
+    try
     {
-        try
+        string buff;
+        ok = read(buff, covbrTxt);
+        if (ok)
         {
-            TRACE_FLOW_TIME(processing file)
+            TRACE_FLOW(processing file)
             const bool fWb = not odir.empty();
             const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
             const auto fname = fpath(covbrTxt).filename().string();
@@ -118,10 +118,10 @@ bool Covbr2Html::convert(
 
                     if (fc)
                     {
-                        rep = repl(reFileEm, "$1<em>$2", repl(reFiles, "$0</em>", rep));
+                        rep = repl(reFileEm, "$1<em>$2", repl(reFiles, "$&</em>", rep));
                         if (hc)
                         {
-                            rep = repl(re_ital, "$1<i>", repl(reFiles, C_ITAL "$0</i>", rep));
+                            rep = repl(re_ital, "$1<i>", repl(reFiles, C_ITAL "$&</i>", rep));
                         }
                     }
                     else {
@@ -148,11 +148,11 @@ bool Covbr2Html::convert(
                 }
             }
         }
-        catch (const std::exception& e)
-        {
-            std::cerr << (e.what()) << '\n';
-            ok = false;
-        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << (e.what()) << '\n';
+        ok = false;
     }
     return ok;
 }
