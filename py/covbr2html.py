@@ -28,7 +28,9 @@ class Covbr2html(object):
             fh.close()
         self.err = False
         self.wb = wb
+        self.hc = hc
         self.fc = fc
+
         self.odir = odir
         if odir:
             if not isdir(odir):
@@ -45,9 +47,16 @@ class Covbr2html(object):
             self.okb = ''
             self.oke = ''
         rFile = r'(?:\w+:/?)?\w+(?:/\w+)*\.(?:cpp|h(?:pp)?):'
-        self.rxFile = re.compile(rf'^({rFile})', re.M)
-        self.rxFiles = re.compile(rf'^((?:{rFile}\n)*)({rFile})\n*', re.M)
-        self.rxDouble = re.compile(rf'^((?:{rFile}\n)*{rFile})\n({rFile})', re.M)
+        #   single file
+        self.rxFile = re.compile(rf'^{rFile}', re.M)
+        #   multiple files no catch
+        self.rxFiles = re.compile(rf'^(?:{rFile}\n)*{rFile}', re.M)
+        #   multiple files catch last
+        self.rxDouble = re.compile(rf'^(?:{rFile}\n)*({rFile})', re.M)
+        #   single file with emphasis end tag
+        self.rxFileEm = re.compile(rf'^{rFile}</em>', re.M)
+
+        self.rxFile = re.compile(rf'^{rFile}', re.M)
         self.rxTail = re.compile(rf'({rFile})?\s*$')
         self.rx_fp = re.compile(rf'^\n*({rFile})\n*', re.M)
         self.rx_ok = re.compile(r'^( *)(X|TF|tf)(?:$| (.*))', re.M)
@@ -86,9 +95,6 @@ class Covbr2html(object):
                 tag = f'<u>{what}</u> '
         return f'{self.okb}{ind}{tag}{line}{self.oke}'
 
-    def _replDouble(self, mo):
-        return f'{self.okb}{mo.group(1)}{self.oke}<em>{mo.group(2)}</em>\n'
-
     def process(self, fp:str):
         """clean txt file write html file"""
         if self.err: return
@@ -103,7 +109,7 @@ class Covbr2html(object):
             else:
                 newc = re.sub(r'\s+$', '',
                     self.rxTail.sub('',
-                        self.rxFiles.sub(r'\n\2', oldc))) + '\n'
+                        self.rxDouble.sub(r'\1', oldc))) + '\n'
 
             if not self.rxFile.search(newc): return
 
@@ -113,9 +119,11 @@ class Covbr2html(object):
             # create html
             newc = escape(newc)
             if self.fc:
-                newc = self.rxFiles.sub(self._replDouble, newc).replace('<i></i>', '').replace('\n</i>', '</i>\n')
+                newc = self.rxFileEm.sub(r'<em>\g<0>', self.rxFiles.sub(r'\g<0></em>', newc))
+                if self.hc: newc = self.rxFiles.sub(r'<i>\g<0></i>', newc)
             else:
-                newc = self.rxFile.sub(r'<em>\1</em>\n', newc)
+                newc = self.rxFile.sub(r'<em>\g<0></em>', newc)
+
             newc = self.rx_ok.sub(self._replOk, self.rx_nok.sub(self._replNok, newc)).strip()
 
             fp = re.sub(r'\.\w+$', '', fp)
