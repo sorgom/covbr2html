@@ -1,17 +1,10 @@
 #include <Covbr2Html.h>
 #include <SOM/fio.h>
+#include <SOM/pyregex.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 
-// see:
-// https://stackoverflow.com/questions/42909618/a-simple-c11-regex-that-throws-regex-error-while-searching
-// #ifdef _MSC_VER
-// #define _REGEX_MAX_STACK_COUNT 200000
-// #endif
-#include <SOM/pyregex.h>
-
-#define TRACE_ME
 #include <SOM/TraceMacros.h>
 
 using py::repl;
@@ -36,7 +29,6 @@ bool Covbr2Html::convert(
     static const regex reLast(C_BEGIN  "(?:" C_FILE "\\r?\\n)*(" C_FILE ")");
     //  tailing file
     static const regex reTail(C_FILE "\\s+$");
-
 
     // html conversion
     static const regex reFileEm(C_BEGIN "(" C_FILE "</em>)");
@@ -90,8 +82,9 @@ bool Covbr2Html::convert(
             const auto fname = fpath(covbrTxt).filename().string();
             std::ofstream os;
             string rep;
-            const string& clText = fc ? buff : rep;
-            if (not fc)
+            const bool ct = not fc;
+            const string& clText = ct ? rep : buff;
+            if (ct)
             {
                 TRACE_FLOW_TIME(clean txt)
                 rep = repl(reTail, "", repl(reLast, "$1$2", buff));
@@ -100,9 +93,9 @@ bool Covbr2Html::convert(
             if (regex_search(clText, reFile))
             {
                 //  write text file if changed or output directory specified
-                if (wb and (fWb or rep != buff))
+                if (wb and (fWb or (ct and clText != buff)))
                 {
-                    TRACE_FLOW_TIME(re-write source)
+                    TRACE_FLOW_TIME(write txt)
                     if (open(os, opath / fname))
                     {
                         os << clText;
@@ -114,21 +107,17 @@ bool Covbr2Html::convert(
                     //  html escape
                     rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", clText)));
 
-                    if (fc)
-                    {
-                        if (hc)
-                        {
-                            TRACE_FLOW(fc and hc)
-                            rep =   repl(re_ital, "$1<i>",
-                                    repl(reFiles, C_ITAL "$&</i>",
-                                    repl(re_em, "$1",
-                                    repl(reFileEm, "$1<em>$2",
-                                    repl(reFiles, "$0</em>", rep)))));
-                        }
-                    }
-                    else
+                    if (ct)
                     {
                         rep = repl(reFile, "$1<em>$2</em>", rep);
+                    }
+                    else if (hc)
+                    {
+                        rep =   repl(re_ital, "$1<i>",
+                                repl(reFiles, C_ITAL "$&</i>",
+                                repl(re_em, "$1",
+                                repl(reFileEm, "$1<em>$2",
+                                repl(reFiles, "$0</em>", rep)))));
                     }
                     rep =   repl(re_tf, rep_tf,
                             repl(re_X,  rep_X,

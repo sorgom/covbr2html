@@ -28,7 +28,7 @@ Show low-level coverage measurements with annotated source code
 
 ## -u option
 With the **-u** option we get a listing of all uncovered parts of all sources concerned.
-- see [sample output](sample_msbuild/covbr_sample.txt)
+- see [sample output](sample_outputs/covbr_sample_big.txt)
 
 ## desired enhancement
 Currently the tool needs improvements:
@@ -43,9 +43,8 @@ Currently the tool needs improvements:
 -   removes fully covered files from listing
 -   generates real highlighted stand-alone html
 
-## C++ / Python / binaries
--   use covbr2html.py in the [py folder](py)
--   build stand-alone executable from C++ code
-    - see [sample script for msbuild](sample_msbuild)
+## Python / C++ / binary
+-   use covbr2html.py in the [sompy folder](submodules/sompy/covbr2html)
+-   build linux stand-alone binary from C++ code
     - see [make folder with Makefile](make)
--   find binaries in the [sombin repo](https://github.com/sorgom/sombin)
+-   find linux binary in the [sombin repo](https://github.com/sorgom/sombin)
