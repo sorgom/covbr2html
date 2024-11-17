@@ -34,6 +34,11 @@ public:
     {
         mHc = hc;
     }
+    //  set keep fully covered sources listed
+    inline void setFc(bool fc = true)
+    {
+        mFc = fc;
+    }
     //  set output directory
     bool setOdir(const CONST_C_STRING odir);
 
@@ -46,6 +51,7 @@ private:
     std::atomic<INT32> mRet = 0;
     bool mWb = false;
     bool mHc = false;
+    bool mFc = false;
     std::string mOdir;
     bool mOk = true;
     void threadFunc(const std::string&& file);

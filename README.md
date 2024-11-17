@@ -33,6 +33,9 @@ With the **-u** option we get a listing of all uncovered parts of all sources co
 ## desired enhancement
 Currently the tool needs improvements:
 -   It reports all files - regardless if containing uncovered bits.
+    - this should be optional
+-   Compared to the nicely highlighted coverage browser or covhtml output
+    the generated texts are not really comfortable to read.
 -   The **--html** option delivers the same plain text wrapped in a pre.
 
 ## meanwhile: covbr2html
@@ -40,8 +43,9 @@ Currently the tool needs improvements:
 -   removes fully covered files from listing
 -   generates real highlighted stand-alone html
 
-## C++ / Python
+## C++ / Python / binaries
 -   use covbr2html.py in the [py folder](py)
 -   build stand-alone executable from C++ code
     - see [sample script for msbuild](sample_msbuild)
     - see [make folder with Makefile](make)
+-   find binaries in the [sombin repo](https://github.com/sorgom/sombin)
