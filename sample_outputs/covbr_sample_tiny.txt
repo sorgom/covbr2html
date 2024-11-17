@@ -1,0 +1,102 @@
+  ...
+X       15     inline CoverageHead(const bool b = false):
+        16         mBool(b),
+        17         // ternary constructor
+-->F    18         mInt(b ? 1 : 0)
+        19     {}
+        20
+        21     //  full coverage
+  ...
+        33         // constructor or
+TF      34         mBool(
+  tf                     b or
+  -->f                        i != 0),
+        35         mInt(i),
+        36         // bool and ternary in new array
+        37         mData(new int[b and i > 0? 20 : 10])
+  ...
+        55         // bool and
+TF      56         if (
+  tf                   b and
+  -->t                       i > 0) { pass(); }
+        57         // bool or
+TF      58         if (
+  tf                   b or
+  -->f                      i > 0) { pass(); }
+        59         else { pass(); }
+        60     }
+        61
+  ...
+X:/git/dstw/application/components/BAS/src/BAS_Checker_04.cpp:
+X:/git/dstw/application/components/BAS/src/BAS_Checker_05.cpp:
+X:/git/dstw/application/components/BAS/src/BAS_Dispatcher_01.cpp:
+  ...
+X        4 CoverageSrc::CoverageSrc(const bool b):
+         5     mBool(b),
+         6     // ternary constructor
+-->F     7     mInt(b ? 1 : 0)
+         8 {}
+         9
+        10 //  full coverage
+  ...
+        22     // constructor or
+TF      23     mBool(
+  tf                 b or
+  -->f                    i != 0),
+        24     mInt(i),
+        25     // bool and ternary in new array
+        26     mData(new int[b and i > 0? 20 : 10])
+  ...
+        44     // bool and
+TF      45     if (
+  tf               b and
+  -->t                   i > 0) { pass(); }
+        46     // bool or
+TF      47     if (
+  tf               b or
+  -->f                  i > 0) { pass(); }
+        48     else { pass(); }
+        49 }
+        50
+  ...
+        57 //  return bool and
+X       58 bool CoverageSrc::retBoolAnd(const int i1, const int i2)
+        59 {
+-->F    60     return
+  tf                  (i1 > 0) and
+  -->f                             (i2 > 0);
+        61 }
+        62 //  return bool or
+X       63 bool CoverageSrc::retBoolOr(const int i1, const int i2)
+        64 {
+TF      65     return
+  -->f                (i1 > 0) or
+  tf                              (i2 > 0);
+        66 }
+        67 //  return ternary
+X       68 int CoverageSrc::retTernary(const int i1, const int i2)
+        69 {
+-->F    70     return i2 > i1 ? i2 : i1;
+        71 }
+        72
+        73 //  call bool simple
+  ...
+X:/git/dstw/application/components/BAS/src/BAS_Supporter_05.cpp:
+X:/git/dstw/application/components/COM/COM_Analayzer_01.h:
+X:/git/dstw/application/components/COM/COM_Analayzer_02.h:
+  ...
+        8 public:
+        9     CoverageTpl() = default;
+X      10     inline static bool isNeg() { return
+-->F
+  -->f                                            IsNeg or
+  -->f                                                     I < 0; }
+X      11     inline static int val() { return
+-->F                                           IsNeg ? Val : -Val; }
+       12 private:
+       13     //  static const bool and
+       14     static const bool IsNeg = B and I < 0;
+  ...
+X:/git/dstw/application/components/COM/COM_Dispatcher_04.h:
+X:/git/dstw/application/components/COM/COM_Dispatcher_05.h:
+X:/git/dstw/application/components/COM/COM_Driver_01.h:

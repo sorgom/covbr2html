@@ -33,7 +33,7 @@ bool Covbr2Html::convert(
     //  multiple files no catch
     static const regex reFiles(C_BEGIN "(?:" C_FILE "\\r?\\n)*" C_FILE);
     //  multiple files catch last
-    static const regex reDouble(C_BEGIN "(?:" C_FILE "\\r?\\n)*(" C_FILE ")");
+    static const regex reLast(C_BEGIN  "(?:" C_FILE "\\r?\\n)*(" C_FILE ")");
     //  tailing file
     static const regex reTail(C_FILE "\\s+$");
 
@@ -48,10 +48,10 @@ bool Covbr2Html::convert(
 
     // OK cases & replacements
     static const regex re_tf(C_BEGIN_B "(TF|tf)\\b(.*)");
-    static const regex re_X (C_BEGIN_B "X\\b([^:].*)?");
+    static const regex re_X (C_BEGIN_B "X( .*)?(\\r?\\n)");
 
     const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
-    const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>" : "$1$2 $3";
+    const CONST_C_STRING rep_X      = hc ? "$1<i>$2 </i>$3" : "$1$2 $3";
 
     #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
     #define C_CONT "(?: (.*))?"
@@ -70,8 +70,10 @@ bool Covbr2Html::convert(
     static const CONST_C_STRING rep_F  = C_SPAN "<s>T</s><u>F</u>   $3</b>";
 
     //  clean <i> line breaks
-    #define C_ITAL "<___i___>"
+    #define C_ITAL "<___C2H_i___>"
     static const regex re_ital(C_ITAL "(\\r?\\n)?");
+    //  clean tailing em
+    static const regex re_em("<em>(" C_FILE ")</em>\\s+$");
     //  file extension
     static const regex reExt("\\.\\w+$");
 
@@ -89,17 +91,13 @@ bool Covbr2Html::convert(
             std::ofstream os;
             string rep;
             const string& clText = fc ? buff : rep;
-            if (fc)
-            {
-                rep = buff;
-            }
-            else
+            if (not fc)
             {
                 TRACE_FLOW_TIME(clean txt)
-                rep = repl(reTail, "", repl(reDouble, "$1$2", buff));
+                rep = repl(reTail, "", repl(reLast, "$1$2", buff));
             }
             //  if anything left
-            if (regex_search(rep, reFile))
+            if (regex_search(clText, reFile))
             {
                 //  write text file if changed or output directory specified
                 if (wb and (fWb or rep != buff))
@@ -107,7 +105,7 @@ bool Covbr2Html::convert(
                     TRACE_FLOW_TIME(re-write source)
                     if (open(os, opath / fname))
                     {
-                        os << rep;
+                        os << clText;
                         os.close();
                     }
                 }
@@ -118,13 +116,18 @@ bool Covbr2Html::convert(
 
                     if (fc)
                     {
-                        rep = repl(reFileEm, "$1<em>$2", repl(reFiles, "$&</em>", rep));
                         if (hc)
                         {
-                            rep = repl(re_ital, "$1<i>", repl(reFiles, C_ITAL "$&</i>", rep));
+                            TRACE_FLOW(fc and hc)
+                            rep =   repl(re_ital, "$1<i>",
+                                    repl(reFiles, C_ITAL "$&</i>",
+                                    repl(re_em, "$1",
+                                    repl(reFileEm, "$1<em>$2",
+                                    repl(reFiles, "$0</em>", rep)))));
                         }
                     }
-                    else {
+                    else
+                    {
                         rep = repl(reFile, "$1<em>$2</em>", rep);
                     }
                     rep =   repl(re_tf, rep_tf,
