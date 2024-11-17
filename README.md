@@ -43,8 +43,7 @@ Currently the tool needs improvements:
 -   removes fully covered files from listing
 -   generates real highlighted stand-alone html
 
-## Python / C++ / binary
+## Python / C++
 -   use covbr2html.py in the [sompy folder](submodules/sompy/covbr2html)
 -   build linux stand-alone binary from C++ code
     - see [make folder with Makefile](make)
--   find linux binary in the [sombin repo](https://github.com/sorgom/sombin)

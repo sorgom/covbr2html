@@ -117,7 +117,7 @@ bool Covbr2Html::convert(
                                 repl(reFiles, C_ITAL "$&</i>",
                                 repl(re_em, "$1",
                                 repl(reFileEm, "$1<em>$2",
-                                repl(reFiles, "$0</em>", rep)))));
+                                repl(reFiles, "$&</em>", rep)))));
                     }
                     rep =   repl(re_tf, rep_tf,
                             repl(re_X,  rep_X,
