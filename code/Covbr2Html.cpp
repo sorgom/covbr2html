@@ -43,7 +43,7 @@ bool Covbr2Html::convert(
     static const regex re_X (C_BEGIN_B "X( .*)?(\\r?\\n)");
 
     const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
-    const CONST_C_STRING rep_X      = hc ? "$1<i>$2 </i>$3" : "$1$2 $3";
+    const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>$4" : "$1$2 $3$4";
 
     #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
     #define C_CONT "(?: (.*))?"
