@@ -1,3 +1,5 @@
+X:/git/dstw/application/components/BAS/BAS_Analayzer_04.h:
+X:/git/dstw/application/components/BAS/BAS_Analayzer_05.h:
   ...
 X       15     inline CoverageHead(const bool b = false):
         16         mBool(b),
@@ -6,6 +8,11 @@ X       15     inline CoverageHead(const bool b = false):
         19     {}
         20
         21     //  full coverage
+        22     //  i 0 / 1
+-->     23     inline CoverageHead(const int i):
+        24         // simple bool constructor
+        25         mBool(i != 0),
+        26         mInt(i)
   ...
         33         // constructor or
 TF      34         mBool(
