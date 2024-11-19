@@ -18,15 +18,16 @@ bool Covbr2Html::convert(
     const bool wb, const bool hc, const bool fc)
 {
     TRACE_FUNC_TIME()
-    #define C_BEGIN "(?:^|(\\r?\\n))"
+    #define C_BEGIN "(^|\\r?\\n|\\r)"
+    #define C_END   "(?:\\r?\\n|\\r|$)"
     #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h|hpp):"
 
     //  single file
     static const regex reFile(C_BEGIN "(" C_FILE ")");
     //  multiple files no catch
-    static const regex reFiles(C_BEGIN "(?:" C_FILE "\\r?\\n)*" C_FILE);
+    static const regex reFiles(C_BEGIN "(?:" C_FILE C_END ")*" C_FILE);
     //  multiple files catch last
-    static const regex reLast(C_BEGIN  "(?:" C_FILE "\\r?\\n)*(" C_FILE ")");
+    static const regex reLast(C_BEGIN  "(?:" C_FILE C_END ")*(" C_FILE ")");
     //  tailing file
     static const regex reTail(C_FILE "\\s+$");
 
@@ -40,7 +41,7 @@ bool Covbr2Html::convert(
 
     // OK cases & replacements
     static const regex re_tf(C_BEGIN_B "(TF|tf)\\b(.*)");
-    static const regex re_X (C_BEGIN_B "X( .*)?(\\r?\\n)");
+    static const regex re_X (C_BEGIN_B "X( .*)?(" C_END ")");
 
     const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
     const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>$4" : "$1$2 $3$4";
@@ -111,13 +112,17 @@ bool Covbr2Html::convert(
                     {
                         rep = repl(reFile, "$1<em>$2</em>", rep);
                     }
-                    else if (hc)
+                    else
                     {
-                        rep =   repl(re_ital, "$1<i>",
-                                repl(reFiles, C_ITAL "$&</i>",
-                                repl(re_em, "$1",
+                        rep =   repl(re_em, "$1",
                                 repl(reFileEm, "$1<em>$2",
-                                repl(reFiles, "$&</em>", rep)))));
+                                repl(reFiles, "$&</em>", rep)));
+
+                        if (hc)
+                        {
+                            rep =   repl(re_ital, "$1<i>",
+                                    repl(reFiles, C_ITAL "$&</i>", rep));
+                        }
                     }
                     rep =   repl(re_tf, rep_tf,
                             repl(re_X,  rep_X,
