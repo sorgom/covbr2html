@@ -39,15 +39,15 @@ define POSTBUILDCMDS
 endef
 
 ifeq ($(config),ci)
-OBJDIR = ../build/linux/ci
+OBJDIR = ../build/linux/ci/ci/covbr2html
 DEFINES += -DNDEBUG
 
 else ifeq ($(config),trace_on)
-OBJDIR = ../build/linux/trace_on
+OBJDIR = ../build/linux/trace_on/trace_on/covbr2html
 DEFINES += -DNDEBUG -DTRACE_ON
 
 else ifeq ($(config),trace_all)
-OBJDIR = ../build/linux/trace_all
+OBJDIR = ../build/linux/trace_all/trace_all/covbr2html
 DEFINES += -DNDEBUG -DTRACE_ALL
 
 endif

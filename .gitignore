@@ -1,7 +1,7 @@
 # specific
 build
 sample_reports
-lab
+# lab
 tmp.*
 tmp_*.*
 tmp/
