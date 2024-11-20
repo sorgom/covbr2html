@@ -5,7 +5,7 @@
 
 #include <SOM/coding.h>
 
-#include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -34,7 +34,7 @@ private:
     static const std::string cHead;
     static const std::string cTail;
 
-    std::ostringstream mOs;
+    std::ofstream mOs;
     bool mHc = false;
     bool mFc = false;
     std::string mOdir;

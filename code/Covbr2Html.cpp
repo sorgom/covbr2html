@@ -1,5 +1,4 @@
 #include "Covbr2Html.h"
-// #include <SOM/BaseTypes.h>
 #include <SOM/fio.h>
 #include <SOM/pyregex.h>
 #include <SOM/TraceMacros.h>
@@ -8,7 +7,7 @@
 using fspath = std::filesystem::path;
 
 using py::repl;
-using std::regex, std::regex_match;
+using std::regex, std::regex_match, std::regex_search;
 
 #include <iostream>
 using std::string, std::cout, std::cerr, std::ifstream;
@@ -38,10 +37,17 @@ bool Covbr2Html::setOdir(const std::string& odir)
 
 bool Covbr2Html::convert(const std::string& fpath)
 {
+    if (not mOk) return false;
+
+    //  html escape
     static const regex reAmp("&");
     static const regex reLt("<");
     static const regex reGt(">");
 
+    //  check for missing coverage indicator
+    static const regex reCheck("\\n *-->[TFtf]?( .*)?\\r?\\n");
+
+    //  line wise
     //  single file
     static const regex reFile("(?:\\w+:)?/?\\w+(?:/\\w+)*\\.\\w+:");
     //  missing
@@ -65,67 +71,63 @@ bool Covbr2Html::convert(const std::string& fpath)
     const CONST_C_STRING cOkBeg = mHc ? "<i>" : "";
     const CONST_C_STRING cOkEnd = mHc ? "</i>" : "";
 
-    mOs.str("");
     mFiles.clear();
 
     string buff;
     TRACE_FUNC_TIME()
 
-    bool ok = mOk and read(buff, fpath);
-    if (ok)
-    {
-        bool nokFound = false;
-        {
-            TRACE_FLOW_TIME(convert to html)
-            //  html escape complete text
-            string rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", buff)));
+    //  read error?
+    if (not read(buff, fpath)) return false;
+    //  nothing to do?
+    if (not (mFc or regex_search(buff, reCheck))) return true;
 
-            //  now line wise
-            istringstream is(rep);
-            string line;
-            std::smatch sm;
-            while (getline(is, line))
+    //  write error?
+    {
+        const auto opath = mOdir.empty() ? fspath(fpath).parent_path() : fspath(mOdir);
+        const auto fname = fspath(fpath).filename().string();
+        const string ttl = repl(reExt, "", fname);
+
+        if (not open(mOs, opath / (ttl + ".html"))) return false;
+
+        mOs << cTtl << ttl << cHead;
+    }
+    {
+        TRACE_FLOW_TIME(convert to html)
+        //  html escape complete text
+        buff = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", buff)));
+
+        //  now line wise
+        istringstream is(buff);
+        string line;
+        std::smatch sm;
+        while (getline(is, line))
+        {
+            if (regex_match(line, reFile))
             {
-                if (regex_match(line, reFile))
+                mFiles.push_back(line);
+            }
+            else
+            {
+                files2os();
+                if (regex_match(line, sm, reNok))
                 {
-                    mFiles.push_back(line);
+                    mOs << "<b>" << sm[1] << repMap.find(sm[2].str())->second << sm[3] << "</b>\n";
+                }
+                else if (regex_match(line, sm, reCov))
+                {
+                    mOs << cOkBeg << sm[1] << repMap.find(sm[2].str())->second << sm[3] << cOkEnd << '\n';
                 }
                 else
                 {
-                    files2os();
-                    if (regex_match(line, sm, reNok))
-                    {
-                        mOs << "<b>" << sm[1] << repMap.find(sm[2].str())->second << sm[3] << "</b>\n";
-                        nokFound = true;
-                    }
-                    else if (regex_match(line, sm, reCov))
-                    {
-                        mOs << cOkBeg << sm[1] << repMap.find(sm[2].str())->second << sm[3] << cOkEnd << '\n';
-                    }
-                    else
-                    {
-                        mOs << line << '\n';
-                    }
+                    mOs << line << '\n';
                 }
             }
-            if (mFc) fc2os();
         }
-        if (nokFound or mFc)
-        {
-            TRACE_FLOW_TIME(write html)
-            const auto opath = mOdir.empty() ? fspath(fpath).parent_path() : fspath(mOdir);
-            const auto fname = fspath(fpath).filename().string();
-            const string ttl = repl(reExt, "", fname);
-            std::ofstream os;
-            ok = open(os, opath / (ttl + ".html"));
-            if (ok)
-            {
-                os << cTtl << ttl << cHead << mOs.str() << cTail;
-                os.close();
-            }
-        }
+        if (mFc) fc2os();
     }
-    return ok;
+    mOs << cTail;
+    mOs.close();
+    return true;
 }
 
 void Covbr2Html::files2os()
