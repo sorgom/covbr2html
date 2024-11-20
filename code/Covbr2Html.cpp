@@ -1,4 +1,4 @@
-#include "Covbr2Html.h"
+#include <Covbr2Html.h>
 #include <SOM/fio.h>
 #include <SOM/pyregex.h>
 #include <SOM/TraceMacros.h>
@@ -34,18 +34,20 @@ bool Covbr2Html::setOdir(const std::string& odir)
 bool Covbr2Html::convert(const std::string& fpath)
 {
     if (not mOk) return false;
+    TRACE_FUNC_TIME()
 
-    TRACE_VAR(mHc)
-    TRACE_VAR(mFc)
+    //  line endings
+    static const regex reNl("\\r\\n|\\r");
+    //  tailing spaces
+    static const regex reSp("\\s+$");
 
     //  html escape
     static const regex reAmp("&");
     static const regex reLt("<");
     static const regex reGt(">");
-    static const regex reNl("\\r\\n|\\r");
 
     //  check for missing coverage indicator
-    static const regex reCheck("\\n *-->[TFtf]?( .*)?\\r?\\n");
+    static const regex reCheck("\\n *-->[TFtf]?( .*)?\\n");
 
     //  line wise
     //  single file
@@ -69,11 +71,11 @@ bool Covbr2Html::convert(const std::string& fpath)
     };
 
     string buff;
-    TRACE_FUNC_TIME()
-
     //  read error?
     if (not read(buff, fpath)) return false;
+
     //  nothing to do?
+    buff = repl(reNl, "\n", repl(reSp, "", buff));
     if (not (mFc or regex_search(buff, reCheck))) return true;
 
     std::ofstream os;
@@ -90,14 +92,14 @@ bool Covbr2Html::convert(const std::string& fpath)
     {
         TRACE_FLOW_TIME(convert to html)
         //  html escape complete text
-        buff = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", repl(reNl, "\n", buff))));
+        buff = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", buff)));
 
         //  now line wise
         const CONST_C_STRING cOkBeg = mHc ? "<i>" : "";
         const CONST_C_STRING cOkEnd = mHc ? "</i>" : "";
 
-        vector<string> files;
         std::istringstream is(buff);
+        vector<string> files;
         string line;
         std::smatch sm;
         while (getline(is, line))
