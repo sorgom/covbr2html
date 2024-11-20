@@ -39,15 +39,15 @@ define POSTBUILDCMDS
 endef
 
 ifeq ($(config),ci)
-OBJDIR = ../build/linux/ci/ci/covbr2html
+OBJDIR = ../build/linux/ci
 DEFINES += -DNDEBUG
 
 else ifeq ($(config),trace_on)
-OBJDIR = ../build/linux/trace_on/trace_on/covbr2html
+OBJDIR = ../build/linux/trace_on
 DEFINES += -DNDEBUG -DTRACE_ON
 
 else ifeq ($(config),trace_all)
-OBJDIR = ../build/linux/trace_all/trace_all/covbr2html
+OBJDIR = ../build/linux/trace_all
 DEFINES += -DNDEBUG -DTRACE_ALL
 
 endif
@@ -63,13 +63,13 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/Covbr2Html.o
-GENERATED += $(OBJDIR)/CovbrGlobber.o
+GENERATED += $(OBJDIR)/Covbr2HtmlFglob.o
 GENERATED += $(OBJDIR)/docopts.o
 GENERATED += $(OBJDIR)/fglob.o
 GENERATED += $(OBJDIR)/fio.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Covbr2Html.o
-OBJECTS += $(OBJDIR)/CovbrGlobber.o
+OBJECTS += $(OBJDIR)/Covbr2HtmlFglob.o
 OBJECTS += $(OBJDIR)/docopts.o
 OBJECTS += $(OBJDIR)/fglob.o
 OBJECTS += $(OBJDIR)/fio.o
@@ -140,7 +140,7 @@ endif
 $(OBJDIR)/Covbr2Html.o: ../code/Covbr2Html.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/CovbrGlobber.o: ../code/CovbrGlobber.cpp
+$(OBJDIR)/Covbr2HtmlFglob.o: ../code/Covbr2HtmlFglob.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: ../code/main.cpp

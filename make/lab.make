@@ -62,16 +62,12 @@ endif
 GENERATED :=
 OBJECTS :=
 
-GENERATED += $(OBJDIR)/Covbr2Html.o
 GENERATED += $(OBJDIR)/docopts.o
 GENERATED += $(OBJDIR)/fglob.o
 GENERATED += $(OBJDIR)/fio.o
-GENERATED += $(OBJDIR)/lab.o
-OBJECTS += $(OBJDIR)/Covbr2Html.o
 OBJECTS += $(OBJDIR)/docopts.o
 OBJECTS += $(OBJDIR)/fglob.o
 OBJECTS += $(OBJDIR)/fio.o
-OBJECTS += $(OBJDIR)/lab.o
 
 # Rules
 # #############################################
@@ -135,12 +131,6 @@ endif
 # File Rules
 # #############################################
 
-$(OBJDIR)/Covbr2Html.o: ../lab/Covbr2Html.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/lab.o: ../lab/lab.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/docopts.o: ../submodules/somcpp/src/docopts.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"

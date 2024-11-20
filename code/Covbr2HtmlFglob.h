@@ -17,13 +17,6 @@ class Covbr2HtmlFglob :
     public I_GlobProcessor
 {
 public:
-    Covbr2HtmlFglob() = default;
-
-    inline ~Covbr2HtmlFglob()
-    {
-        join();
-    }
-
     //  I_GlobProcessor
     void process(CONST_C_STRING item) override;
 
@@ -31,6 +24,11 @@ public:
     //  return: number of failures
     //  -> end of main return
     int ret();
+
+    Covbr2HtmlFglob() = default;
+
+    inline ~Covbr2HtmlFglob() { join(); }
+
 private:
     std::vector<std::thread> mThreads;
     std::atomic<int> mRet = 0;

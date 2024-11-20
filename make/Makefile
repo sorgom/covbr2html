@@ -10,21 +10,18 @@ endif
 
 ifeq ($(config),ci)
   covbr2html_config = ci
-  lab_config = ci
 
 else ifeq ($(config),trace_on)
   covbr2html_config = trace_on
-  lab_config = trace_on
 
 else ifeq ($(config),trace_all)
   covbr2html_config = trace_all
-  lab_config = trace_all
 
 else
   $(error "invalid configuration $(config)")
 endif
 
-PROJECTS := covbr2html lab
+PROJECTS := covbr2html
 
 .PHONY: all clean help $(PROJECTS) 
 
@@ -36,15 +33,8 @@ ifneq (,$(covbr2html_config))
 	@${MAKE} --no-print-directory -C . -f covbr2html.make config=$(covbr2html_config)
 endif
 
-lab:
-ifneq (,$(lab_config))
-	@echo "==== Building lab ($(lab_config)) ===="
-	@${MAKE} --no-print-directory -C . -f lab.make config=$(lab_config)
-endif
-
 clean:
 	@${MAKE} --no-print-directory -C . -f covbr2html.make clean
-	@${MAKE} --no-print-directory -C . -f lab.make clean
 
 help:
 	@echo "Usage: make [config=name] [target]"
@@ -58,6 +48,5 @@ help:
 	@echo "   all (default)"
 	@echo "   clean"
 	@echo "   covbr2html"
-	@echo "   lab"
 	@echo ""
 	@echo "For more information, see https://github.com/premake/premake-core/wiki"

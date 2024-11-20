@@ -43,9 +43,9 @@ workspace 'covbr2html'
             somsrc .. 'docopts.cpp'
         }
 
-    project 'lab'
-        includedirs { '../lab', '../code', somcpp .. '/include' }
-        files {
-            '../lab/*.cpp',
-            somsrc .. '*.cpp'
-        }
+    -- project 'lab'
+    --     includedirs { '../lab', '../code', somcpp .. '/include' }
+    --     files {
+    --         '../lab/*.cpp',
+    --         somsrc .. '*.cpp'
+    --     }
