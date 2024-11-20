@@ -19,7 +19,6 @@ workspace 'covbr2html'
     optimize 'Speed'
     kind 'ConsoleApp'
 
-    includedirs { '../code', somcpp .. '/include' }
 
     filter { 'action:vs*' }
         warnings 'high'
@@ -36,13 +35,17 @@ workspace 'covbr2html'
         defines { 'TRACE_ALL' }
 
     project 'covbr2html'
-        files { 
+        includedirs { '../code', somcpp .. '/include' }
+        files {
             '../code/*.cpp',
             somsrc .. 'fglob.cpp',
-            somsrc .. 'fio.cpp', 
-            somsrc .. 'docopts.cpp', 
+            somsrc .. 'fio.cpp',
+            somsrc .. 'docopts.cpp'
         }
-  
+
     -- project 'lab'
-    --     includedirs { '../lab' }
-    --     files { '../lab/*.cpp' }
+    --     includedirs { '../lab', '../code', somcpp .. '/include' }
+    --     files {
+    --         '../lab/*.cpp',
+    --         somsrc .. '*.cpp'
+    --     }

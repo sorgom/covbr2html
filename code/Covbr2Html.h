@@ -3,31 +3,46 @@
 #ifndef COVBR_2_HTML_H
 #define COVBR_2_HTML_H
 
-#include <SOM/BaseTypes.h>
 #include <SOM/coding.h>
 
+#include <fstream>
 #include <string>
+#include <vector>
 
-//  covbr to html converter
 class Covbr2Html
 {
 public:
-    //  the conversion
-    //  covbrTxt: source file name
-    //  wb: write back cleaned sources
-    //  hc: highlight covered parts
-    //  fc: keep fully covered sources listed
-    static bool convert(
-        const std::string& covbrTxt,
-        const std::string& odir,
-        bool wb = false, bool hc = false, bool fc = false);
+    // set output directory other than source directory
+    bool setOdir(const std::string& odir);
+    // highlight covered items
+    inline void setHc(const bool hc = true) { mHc = hc; }
+    // keep fully covered sources listed
+    inline void setFc(const bool fc = true) { mFc = fc; }
+
+    // convert covbr text file to html
+    // with given options
+    // return false on read / write error
+    bool convert(const std::string& fpath);
+
+    inline Covbr2Html() = default;
+
+protected:
+    inline bool ok() const { return mOk; }
 
 private:
-    static const CONST_C_STRING cTtl;
-    static const CONST_C_STRING cHead;
-    static const CONST_C_STRING cTail;
+    static const std::string cTtl;
+    static const std::string cHead;
+    static const std::string cTail;
 
-    NODEF(Covbr2Html)
+    std::ofstream mOs;
+    bool mHc = false;
+    bool mFc = false;
+    std::string mOdir;
+    bool mOk = true;
+    std::vector<std::string> mFiles;
+    void files2os();
+    void fc2os();
+
     NOCOPY(Covbr2Html)
 };
 

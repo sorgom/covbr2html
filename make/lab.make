@@ -20,8 +20,8 @@ endif
 
 RESCOMP = windres
 TARGETDIR = ../build
-TARGET = $(TARGETDIR)/covbr2html
-INCLUDES += -I../code -I../submodules/somcpp/include
+TARGET = $(TARGETDIR)/lab
+INCLUDES += -I../lab -I../code -I../submodules/somcpp/include
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O3 -std=c++17 -O3 -pedantic-errors -Wall
@@ -39,15 +39,15 @@ define POSTBUILDCMDS
 endef
 
 ifeq ($(config),ci)
-OBJDIR = ../build/linux/ci
+OBJDIR = ../build/linux/ci/ci/lab
 DEFINES += -DNDEBUG
 
 else ifeq ($(config),trace_on)
-OBJDIR = ../build/linux/trace_on
+OBJDIR = ../build/linux/trace_on/trace_on/lab
 DEFINES += -DNDEBUG -DTRACE_ON
 
 else ifeq ($(config),trace_all)
-OBJDIR = ../build/linux/trace_all
+OBJDIR = ../build/linux/trace_all/trace_all/lab
 DEFINES += -DNDEBUG -DTRACE_ALL
 
 endif
@@ -62,18 +62,12 @@ endif
 GENERATED :=
 OBJECTS :=
 
-GENERATED += $(OBJDIR)/Covbr2Html.o
-GENERATED += $(OBJDIR)/Covbr2HtmlFglob.o
 GENERATED += $(OBJDIR)/docopts.o
 GENERATED += $(OBJDIR)/fglob.o
 GENERATED += $(OBJDIR)/fio.o
-GENERATED += $(OBJDIR)/main.o
-OBJECTS += $(OBJDIR)/Covbr2Html.o
-OBJECTS += $(OBJDIR)/Covbr2HtmlFglob.o
 OBJECTS += $(OBJDIR)/docopts.o
 OBJECTS += $(OBJDIR)/fglob.o
 OBJECTS += $(OBJDIR)/fio.o
-OBJECTS += $(OBJDIR)/main.o
 
 # Rules
 # #############################################
@@ -83,7 +77,7 @@ all: $(TARGET)
 
 $(TARGET): $(GENERATED) $(OBJECTS) $(LDDEPS) | $(TARGETDIR)
 	$(PRELINKCMDS)
-	@echo Linking covbr2html
+	@echo Linking lab
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
 
@@ -104,7 +98,7 @@ else
 endif
 
 clean:
-	@echo Cleaning covbr2html
+	@echo Cleaning lab
 ifeq (posix,$(SHELLTYPE))
 	$(SILENT) rm -f  $(TARGET)
 	$(SILENT) rm -rf $(GENERATED)
@@ -137,15 +131,6 @@ endif
 # File Rules
 # #############################################
 
-$(OBJDIR)/Covbr2Html.o: ../code/Covbr2Html.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Covbr2HtmlFglob.o: ../code/Covbr2HtmlFglob.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/main.o: ../code/main.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/docopts.o: ../submodules/somcpp/src/docopts.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"

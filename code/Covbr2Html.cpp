@@ -1,161 +1,172 @@
-#include <Covbr2Html.h>
+#include "Covbr2Html.h"
 #include <SOM/fio.h>
 #include <SOM/pyregex.h>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-
 #include <SOM/TraceMacros.h>
 
+#include <filesystem>
+using fspath = std::filesystem::path;
+
 using py::repl;
-using std::regex, std::regex_search;
-using std::string;
-using fpath = std::filesystem::path;
+using std::regex, std::regex_match, std::regex_search;
 
-bool Covbr2Html::convert(
-    const string& covbrTxt,
-    const std::string& odir,
-    const bool wb, const bool hc, const bool fc)
+#include <iostream>
+using std::string, std::cout, std::cerr, std::ifstream;
+#include <sstream>
+using std::istringstream, std::ostringstream;
+#include <vector>
+using std::vector;
+#include <map>
+#include <ciso646>
+
+bool Covbr2Html::setOdir(const std::string& odir)
 {
-    TRACE_FUNC_TIME()
-    #define C_BEGIN "(?:^|(\\r?\\n))"
-    #define C_FILE  "(?:\\w+:/?)?\\w+(?:/\\w+)*\\.(?:cpp|h|hpp):"
+    mOk = true;
+    mOdir.clear();
+    try
+    {
+        std::filesystem::create_directories(odir);
+        mOdir = odir;
+    }
+    catch(const std::filesystem::filesystem_error&)
+    {
+        mOk = false;
+        std::cerr << "cannot create directory " << odir << '\n';
+    }
+    return mOk;
+}
 
-    //  single file
-    static const regex reFile(C_BEGIN "(" C_FILE ")");
-    //  multiple files no catch
-    static const regex reFiles(C_BEGIN "(?:" C_FILE "\\r?\\n)*" C_FILE);
-    //  multiple files catch last
-    static const regex reLast(C_BEGIN  "(?:" C_FILE "\\r?\\n)*(" C_FILE ")");
-    //  tailing file
-    static const regex reTail(C_FILE "\\s+$");
+bool Covbr2Html::convert(const std::string& fpath)
+{
+    if (not mOk) return false;
 
-    // html conversion
-    static const regex reFileEm(C_BEGIN "(" C_FILE "</em>)");
+    //  html escape
     static const regex reAmp("&");
     static const regex reLt("<");
     static const regex reGt(">");
 
-    #define C_BEGIN_B C_BEGIN "( *)"
+    //  check for missing coverage indicator
+    static const regex reCheck("\\n *-->[TFtf]?( .*)?\\r?\\n");
 
-    // OK cases & replacements
-    static const regex re_tf(C_BEGIN_B "(TF|tf)\\b(.*)");
-    static const regex re_X (C_BEGIN_B "X( .*)?(\\r?\\n)");
-
-    const CONST_C_STRING rep_tf     = hc ? "$1<i>$2<u>$3</u>$4</i>" : "$1$2<u>$3</u>$4";
-    const CONST_C_STRING rep_X      = hc ? "$1<i>$2 $3</i>$4" : "$1$2 $3$4";
-
-    #define C_BEGIN_NOK C_BEGIN_B "--&gt;"
-    #define C_CONT "(?: (.*))?"
-    // NOK cases & replacements
-    static const regex re_x(C_BEGIN_NOK C_CONT);
-    static const regex re_t(C_BEGIN_NOK "t" C_CONT);
-    static const regex re_f(C_BEGIN_NOK "f" C_CONT);
-    static const regex re_T(C_BEGIN_NOK "T" C_CONT);
-    static const regex re_F(C_BEGIN_NOK "F" C_CONT);
-
-    #define C_SPAN "$1<b>$2"
-    static const CONST_C_STRING rep_x  = C_SPAN "<s>X</s>   $3</b>";
-    static const CONST_C_STRING rep_t  = C_SPAN "<u>t</u><s>f</s>   $3</b>";
-    static const CONST_C_STRING rep_f  = C_SPAN "<s>t</s><u>f</u>   $3</b>";
-    static const CONST_C_STRING rep_T  = C_SPAN "<u>T</u><s>F</s>   $3</b>";
-    static const CONST_C_STRING rep_F  = C_SPAN "<s>T</s><u>F</u>   $3</b>";
-
-    //  clean <i> line breaks
-    #define C_ITAL "<___C2H_i___>"
-    static const regex re_ital(C_ITAL "(\\r?\\n)?");
-    //  clean tailing em
-    static const regex re_em("<em>(" C_FILE ")</em>\\s+$");
-    //  file extension
+    //  line wise
+    //  single file
+    static const regex reFile("(?:\\w+:)?/?\\w+(?:/\\w+)*\\.\\w+:");
+    //  missing
+    static const regex reNok("( *)--&gt;([TFtf])?( .*)?");
+    //  covered
+    static const regex reCov("( *)(TF|tf|X)( .*)?");
+    //  extension
     static const regex reExt("\\.\\w+$");
 
-    bool ok = false;
-    try
-    {
-        string buff;
-        ok = read(buff, covbrTxt);
-        if (ok)
-        {
-            TRACE_FLOW(processing file)
-            const bool fWb = not odir.empty();
-            const auto opath = fWb ? fpath(odir) : fpath(covbrTxt).parent_path();
-            const auto fname = fpath(covbrTxt).filename().string();
-            std::ofstream os;
-            string rep;
-            const bool ct = not fc;
-            const string& clText = ct ? rep : buff;
-            if (ct)
-            {
-                TRACE_FLOW_TIME(clean txt)
-                rep = repl(reTail, "", repl(reLast, "$1$2", buff));
-            }
-            //  if anything left
-            if (regex_search(clText, reFile))
-            {
-                //  write text file if changed or output directory specified
-                if (wb and (fWb or (ct and clText != buff)))
-                {
-                    TRACE_FLOW_TIME(write txt)
-                    if (open(os, opath / fname))
-                    {
-                        os << clText;
-                        os.close();
-                    }
-                }
-                {
-                    TRACE_FLOW_TIME(convert to html)
-                    //  html escape
-                    rep = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", clText)));
+    static const std::map<const string, const string> repMap = {
+        {"",  "<s>X</s> "},
+        {"t", "<u>t</u><s>f</s>  "},
+        {"f", "<s>t</s><u>f</u>  "},
+        {"T", "<u>T</u><s>F</s>  "},
+        {"F", "<s>T</s><u>F</u>  "},
+        {"X", " "},
+        {"TF", "<u>TF</u>"},
+        {"tf", "<u>tf</u>"}
+    };
 
-                    if (ct)
-                    {
-                        rep = repl(reFile, "$1<em>$2</em>", rep);
-                    }
-                    else if (hc)
-                    {
-                        rep =   repl(re_ital, "$1<i>",
-                                repl(reFiles, C_ITAL "$&</i>",
-                                repl(re_em, "$1",
-                                repl(reFileEm, "$1<em>$2",
-                                repl(reFiles, "$&</em>", rep)))));
-                    }
-                    rep =   repl(re_tf, rep_tf,
-                            repl(re_X,  rep_X,
-                            repl(re_x,  rep_x,
-                            repl(re_t,  rep_t,
-                            repl(re_f,  rep_f,
-                            repl(re_T,  rep_T,
-                            repl(re_F,  rep_F, rep
-                        )))))));
-                }
-                //  write html file
+    const CONST_C_STRING cOkBeg = mHc ? "<i>" : "";
+    const CONST_C_STRING cOkEnd = mHc ? "</i>" : "";
+
+    mFiles.clear();
+
+    string buff;
+    TRACE_FUNC_TIME()
+
+    //  read error?
+    if (not read(buff, fpath)) return false;
+    //  nothing to do?
+    if (not (mFc or regex_search(buff, reCheck))) return true;
+
+    //  write error?
+    {
+        const auto opath = mOdir.empty() ? fspath(fpath).parent_path() : fspath(mOdir);
+        const auto fname = fspath(fpath).filename().string();
+        const string ttl = repl(reExt, "", fname);
+
+        if (not open(mOs, opath / (ttl + ".html"))) return false;
+
+        mOs << cTtl << ttl << cHead;
+    }
+    {
+        TRACE_FLOW_TIME(convert to html)
+        //  html escape complete text
+        buff = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", buff)));
+
+        //  now line wise
+        istringstream is(buff);
+        string line;
+        std::smatch sm;
+        while (getline(is, line))
+        {
+            if (regex_match(line, reFile))
+            {
+                mFiles.push_back(line);
+            }
+            else
+            {
+                files2os();
+                if (regex_match(line, sm, reNok))
                 {
-                    TRACE_FLOW_TIME(write html)
-                    const string ttl = repl(reExt, "", fname);
-                    if (open(os, opath / repl(reExt, ".html", fname)))
-                    {
-                        os << cTtl << ttl << cHead << rep << cTail;
-                        os.close();
-                    }
+                    mOs << "<b>" << sm[1] << repMap.find(sm[2].str())->second << sm[3] << "</b>\n";
+                }
+                else if (regex_match(line, sm, reCov))
+                {
+                    mOs << cOkBeg << sm[1] << repMap.find(sm[2].str())->second << sm[3] << cOkEnd << '\n';
+                }
+                else
+                {
+                    mOs << line << '\n';
                 }
             }
         }
+        if (mFc) fc2os();
     }
-    catch (const std::exception& e)
-    {
-        std::cerr << (e.what()) << '\n';
-        ok = false;
-    }
-    return ok;
+    mOs << cTail;
+    mOs.close();
+    return true;
 }
 
-const CONST_C_STRING Covbr2Html::cTtl =
+void Covbr2Html::files2os()
+{
+    if (mFiles.size() > 0)
+    {
+        auto last = mFiles.back();
+        if (mFc)
+        {
+            mFiles.pop_back();
+            fc2os();
+        }
+        mOs << "<em>" << last << "</em>\n";
+        mFiles.clear();
+    }
+}
+
+void Covbr2Html::fc2os()
+{
+    if (mFiles.size() > 0)
+    {
+        mOs << (mHc ? "<i>" : "");
+        for (size_t i = 0; i < mFiles.size() - 1; ++i)
+        {
+            mOs << mFiles[i] << '\n';
+        }
+        mOs << mFiles.back() << (mHc ? "</i>" : "") << '\n';
+        mFiles.clear();
+    }
+}
+
+const string Covbr2Html::cTtl(
     "<!DOCTYPE html>\n"
     "<html lang=en>\n"
     "<head>\n"
-    "<title>";
+    "<title>"
+);
 
-const CONST_C_STRING Covbr2Html::cHead =
+const string Covbr2Html::cHead(
     "</title>\n"
     "<meta charset=\"UTF-8\">\n"
     "<style>\n"
@@ -173,6 +184,6 @@ const CONST_C_STRING Covbr2Html::cHead =
     "</style>\n"
     "</head>\n"
     "<body>\n"
-    "<p>";
+    "<p>");
 
-const CONST_C_STRING Covbr2Html::cTail = "</p></body></html>\n";
+const string Covbr2Html::cTail("</p></body></html>\n");

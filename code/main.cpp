@@ -1,4 +1,4 @@
-#include <CovbrGlobber.h>
+#include <Covbr2HtmlFglob.h>
 #include <SOM/docopts.h>
 #define TRACE_ME
 #include <SOM/TraceMacros.h>
@@ -12,7 +12,6 @@ const CONST_C_STRING cOpts =
     "-o  <directory> output to directory\n"
     "-c  highlight covered items\n"
     "-f  keep fully covered sources listed\n"
-    "-w  write cleaned covbr text files\n"
     "-h  this help\n"
 ;
 
@@ -39,8 +38,7 @@ INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
         }
         else
         {
-            CovbrGlobber globber;
-            globber.setWb(opts.isSet('w'));
+            Covbr2HtmlFglob globber;
             globber.setHc(opts.isSet('c'));
             globber.setFc(opts.isSet('f'));
             CONST_C_STRING odir = nullptr;
