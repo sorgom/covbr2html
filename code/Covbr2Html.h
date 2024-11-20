@@ -3,6 +3,7 @@
 #ifndef COVBR_2_HTML_H
 #define COVBR_2_HTML_H
 
+#include <SOM/BaseTypes.h>
 #include <SOM/coding.h>
 
 #include <fstream>
@@ -30,18 +31,18 @@ protected:
     inline bool ok() const { return mOk; }
 
 private:
-    static const std::string cTtl;
-    static const std::string cHead;
-    static const std::string cTail;
+    static const CONST_C_STRING cTtl;
+    static const CONST_C_STRING cHead;
+    static const CONST_C_STRING cTail;
 
-    std::ofstream mOs;
     bool mHc = false;
     bool mFc = false;
     std::string mOdir;
     bool mOk = true;
-    std::vector<std::string> mFiles;
-    void files2os();
-    void fc2os();
+    void fc2os(
+        std::ofstream& os,
+        const std::vector<std::string>& files
+    );
 
     NOCOPY(Covbr2Html)
 };

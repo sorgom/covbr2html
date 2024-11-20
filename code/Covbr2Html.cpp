@@ -4,19 +4,15 @@
 #include <SOM/TraceMacros.h>
 
 #include <filesystem>
-using fspath = std::filesystem::path;
+#include <iostream>
+#include <map>
+#include <sstream>
 
+using fspath = std::filesystem::path;
 using py::repl;
 using std::regex, std::regex_match, std::regex_search;
-
-#include <iostream>
-using std::string, std::cout, std::cerr, std::ifstream;
-#include <sstream>
-using std::istringstream, std::ostringstream;
-#include <vector>
+using std::string;
 using std::vector;
-#include <map>
-#include <ciso646>
 
 bool Covbr2Html::setOdir(const std::string& odir)
 {
@@ -39,17 +35,21 @@ bool Covbr2Html::convert(const std::string& fpath)
 {
     if (not mOk) return false;
 
+    TRACE_VAR(mHc)
+    TRACE_VAR(mFc)
+
     //  html escape
     static const regex reAmp("&");
     static const regex reLt("<");
     static const regex reGt(">");
+    static const regex reNl("\\r\\n|\\r");
 
     //  check for missing coverage indicator
     static const regex reCheck("\\n *-->[TFtf]?( .*)?\\r?\\n");
 
     //  line wise
     //  single file
-    static const regex reFile("(?:\\w+:)?/?\\w+(?:/\\w+)*\\.\\w+:");
+    static const regex reFile("^(?:\\w+:)?/?\\w+(?:/\\w+)*\\.\\w+:$");
     //  missing
     static const regex reNok("( *)--&gt;([TFtf])?( .*)?");
     //  covered
@@ -68,11 +68,6 @@ bool Covbr2Html::convert(const std::string& fpath)
         {"tf", "<u>tf</u>"}
     };
 
-    const CONST_C_STRING cOkBeg = mHc ? "<i>" : "";
-    const CONST_C_STRING cOkEnd = mHc ? "</i>" : "";
-
-    mFiles.clear();
-
     string buff;
     TRACE_FUNC_TIME()
 
@@ -81,92 +76,92 @@ bool Covbr2Html::convert(const std::string& fpath)
     //  nothing to do?
     if (not (mFc or regex_search(buff, reCheck))) return true;
 
+    std::ofstream os;
     //  write error?
     {
         const auto opath = mOdir.empty() ? fspath(fpath).parent_path() : fspath(mOdir);
         const auto fname = fspath(fpath).filename().string();
         const string ttl = repl(reExt, "", fname);
 
-        if (not open(mOs, opath / (ttl + ".html"))) return false;
+        if (not open(os, opath / (ttl + ".html"))) return false;
 
-        mOs << cTtl << ttl << cHead;
+        os << cTtl << ttl << cHead;
     }
     {
         TRACE_FLOW_TIME(convert to html)
         //  html escape complete text
-        buff = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", buff)));
+        buff = repl(reGt, "&gt;", repl(reLt, "&lt;", repl(reAmp, "&amp;", repl(reNl, "\n", buff))));
 
         //  now line wise
-        istringstream is(buff);
+        const CONST_C_STRING cOkBeg = mHc ? "<i>" : "";
+        const CONST_C_STRING cOkEnd = mHc ? "</i>" : "";
+
+        vector<string> files;
+        std::istringstream is(buff);
         string line;
         std::smatch sm;
         while (getline(is, line))
         {
             if (regex_match(line, reFile))
             {
-                mFiles.push_back(line);
+                files.push_back(line);
             }
             else
             {
-                files2os();
+                if (not files.empty())
+                {
+                    const auto last = files.back();
+                    if (mFc)
+                    {
+                        files.pop_back();
+                        fc2os(os, files);
+                    }
+                    os << "<em>" << last << "</em>\n";
+                    files.clear();
+                }
+
                 if (regex_match(line, sm, reNok))
                 {
-                    mOs << "<b>" << sm[1] << repMap.find(sm[2].str())->second << sm[3] << "</b>\n";
+                    os << "<b>" << sm[1] << repMap.find(sm[2].str())->second << sm[3] << "</b>\n";
                 }
                 else if (regex_match(line, sm, reCov))
                 {
-                    mOs << cOkBeg << sm[1] << repMap.find(sm[2].str())->second << sm[3] << cOkEnd << '\n';
+                    os << cOkBeg << sm[1] << repMap.find(sm[2].str())->second << sm[3] << cOkEnd << '\n';
                 }
                 else
                 {
-                    mOs << line << '\n';
+                    os << line << '\n';
                 }
             }
         }
-        if (mFc) fc2os();
+        if (mFc) fc2os(os, files);
     }
-    mOs << cTail;
-    mOs.close();
+    os << cTail;
+    os.close();
     return true;
 }
 
-void Covbr2Html::files2os()
+void Covbr2Html::fc2os(std::ofstream& os, const vector<string>& files)
 {
-    if (mFiles.size() > 0)
+    if (files.size() > 0)
     {
-        auto last = mFiles.back();
-        if (mFc)
+        os << (mHc ? "<i>" : "");
+        for (size_t i = 0; i < files.size() - 1; ++i)
         {
-            mFiles.pop_back();
-            fc2os();
+            os << files[i] << '\n';
         }
-        mOs << "<em>" << last << "</em>\n";
-        mFiles.clear();
+        os << files.back() << (mHc ? "</i>" : "") << '\n';
     }
 }
 
-void Covbr2Html::fc2os()
-{
-    if (mFiles.size() > 0)
-    {
-        mOs << (mHc ? "<i>" : "");
-        for (size_t i = 0; i < mFiles.size() - 1; ++i)
-        {
-            mOs << mFiles[i] << '\n';
-        }
-        mOs << mFiles.back() << (mHc ? "</i>" : "") << '\n';
-        mFiles.clear();
-    }
-}
-
-const string Covbr2Html::cTtl(
+const CONST_C_STRING Covbr2Html::cTtl(
     "<!DOCTYPE html>\n"
     "<html lang=en>\n"
     "<head>\n"
     "<title>"
 );
 
-const string Covbr2Html::cHead(
+const CONST_C_STRING Covbr2Html::cHead(
     "</title>\n"
     "<meta charset=\"UTF-8\">\n"
     "<style>\n"
@@ -186,4 +181,4 @@ const string Covbr2Html::cHead(
     "<body>\n"
     "<p>");
 
-const string Covbr2Html::cTail("</p></body></html>\n");
+const CONST_C_STRING Covbr2Html::cTail("</p></body></html>\n");
