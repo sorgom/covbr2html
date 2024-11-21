@@ -31,10 +31,6 @@ protected:
     inline bool ok() const { return mOk; }
 
 private:
-    static const CONST_C_STRING cTtl;
-    static const CONST_C_STRING cHead;
-    static const CONST_C_STRING cTail;
-
     bool mHc = false;
     bool mFc = false;
     std::string mOdir;

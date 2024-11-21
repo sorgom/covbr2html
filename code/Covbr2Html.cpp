@@ -36,18 +36,51 @@ bool Covbr2Html::convert(const std::string& fpath)
     if (not mOk) return false;
     TRACE_FUNC_TIME()
 
+    static const CONST_C_STRING cTtl
+    {
+        "<!DOCTYPE html>\n"
+        "<html lang=en>\n"
+        "<head>\n"
+        "<title>"
+    };
+
+    static const CONST_C_STRING cHead
+    {
+        "</title>\n"
+        "<meta charset=\"UTF-8\">\n"
+        "<style>\n"
+        "* { font-style: normal; text-decoration: none; font-weight: normal;\n"
+        "    font-family:Consolas,Consolas,Menlo,monospace;\n"
+        "    margin: 0;\n"
+        "    white-space:pre;\n"
+        "}\n"
+        "p { font-size:10pt; margin-left: 1em; margin-bottom: 2em; }\n"
+        "u { color: blue; font-weight: bold; }\n"
+        "s { color: red; font-weight: bold; }\n"
+        "b { background-color: hsl(355,100%,91%); }\n"
+        "i { background-color: hsl(120,100%,93%); }\n"
+        "em { font-weight: bold; }\n"
+        "</style>\n"
+        "</head>\n"
+        "<body>\n"
+        "<p>"
+    };
+
+    static const CONST_C_STRING cTail { "</p></body></html>\n" };
+
     //  line endings
     static const regex reNl("\\r\\n|\\r");
+    static const regex reEol("(\\r?\\n|\\r)");
     //  tailing spaces
     static const regex reSp("\\s+$");
+
+    //  check for missing coverage indicator
+    static const regex reCheck("\\n *-->[TFtf]?( .*)?\\n");
 
     //  html escape
     static const regex reAmp("&");
     static const regex reLt("<");
     static const regex reGt(">");
-
-    //  check for missing coverage indicator
-    static const regex reCheck("\\n *-->[TFtf]?( .*)?\\n");
 
     //  line wise
     //  single file
@@ -59,19 +92,21 @@ bool Covbr2Html::convert(const std::string& fpath)
     //  extension
     static const regex reExt("\\.\\w+$");
 
-    static const std::map<const string, const string> repMap = {
+    static const std::map<const string, const CONST_C_STRING> repMap
+    {
+        //  missing coverage
         {"",  "<s>X</s> "},
         {"t", "<u>t</u><s>f</s>  "},
         {"f", "<s>t</s><u>f</u>  "},
         {"T", "<u>T</u><s>F</s>  "},
         {"F", "<s>T</s><u>F</u>  "},
+        //  covered
         {"X", " "},
         {"TF", "<u>TF</u>"},
         {"tf", "<u>tf</u>"}
     };
 
     string buff;
-    //  read error?
     if (not read(buff, fpath)) return false;
 
     //  nothing to do?
@@ -79,11 +114,10 @@ bool Covbr2Html::convert(const std::string& fpath)
     if (not (mFc or regex_search(buff, reCheck))) return true;
 
     std::ofstream os;
-    //  write error?
     {
         const auto opath = mOdir.empty() ? fspath(fpath).parent_path() : fspath(mOdir);
         const auto fname = fspath(fpath).filename().string();
-        const string ttl = repl(reExt, "", fname);
+        const auto ttl = repl(reExt, "", fname);
 
         if (not open(os, opath / (ttl + ".html"))) return false;
 
@@ -145,7 +179,7 @@ bool Covbr2Html::convert(const std::string& fpath)
 
 void Covbr2Html::fc2os(std::ofstream& os, const vector<string>& files)
 {
-    if (files.size() > 0)
+    if (not files.empty())
     {
         os << (mHc ? "<i>" : "");
         for (size_t i = 0; i < files.size() - 1; ++i)
@@ -155,32 +189,3 @@ void Covbr2Html::fc2os(std::ofstream& os, const vector<string>& files)
         os << files.back() << (mHc ? "</i>" : "") << '\n';
     }
 }
-
-const CONST_C_STRING Covbr2Html::cTtl(
-    "<!DOCTYPE html>\n"
-    "<html lang=en>\n"
-    "<head>\n"
-    "<title>"
-);
-
-const CONST_C_STRING Covbr2Html::cHead(
-    "</title>\n"
-    "<meta charset=\"UTF-8\">\n"
-    "<style>\n"
-    "* { font-style: normal; text-decoration: none; font-weight: normal;\n"
-    "    font-family:Consolas,Consolas,Menlo,monospace;\n"
-    "    margin: 0;\n"
-    "    white-space:pre;\n"
-    "}\n"
-    "p { font-size:10pt; margin-left: 1em; margin-bottom: 2em; }\n"
-    "u { color: blue; font-weight: bold; }\n"
-    "s { color: red; font-weight: bold; }\n"
-    "b { background-color: hsl(355,100%,91%); }\n"
-    "i { background-color: hsl(120,100%,93%); }\n"
-    "em { font-weight: bold; }\n"
-    "</style>\n"
-    "</head>\n"
-    "<body>\n"
-    "<p>");
-
-const CONST_C_STRING Covbr2Html::cTail("</p></body></html>\n");

@@ -14,10 +14,10 @@
 //  runs conversion of files in separate threads
 class Covbr2HtmlFglob :
     public Covbr2Html,
-    public I_GlobProcessor
+    public I_FglobProcessor
 {
 public:
-    //  I_GlobProcessor
+    //  I_FglobProcessor
     void process(CONST_C_STRING item) override;
 
     //  wait for all threads to finish
