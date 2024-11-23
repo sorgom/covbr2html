@@ -4,7 +4,7 @@
 
 #include <Covbr2Html.h>
 #include <SOM/coding.h>
-#include <SOM/fglob.h>
+#include <SOM/Glob.h>
 
 #include <atomic>
 #include <string>
@@ -12,29 +12,29 @@
 #include <vector>
 
 //  runs conversion of files in separate threads
-class Covbr2HtmlFglob :
+class Covbr2HtmlGlob :
     public Covbr2Html,
-    public I_FglobProcessor
+    public I_GlobProcessor
 {
 public:
     //  I_FglobProcessor
-    void process(CONST_C_STRING item) override;
+    void process(const std::string& item) override;
 
     //  wait for all threads to finish
     //  return: number of failures
     //  -> end of main return
     int ret();
 
-    Covbr2HtmlFglob() = default;
+    Covbr2HtmlGlob() = default;
 
-    inline ~Covbr2HtmlFglob() { join(); }
+    inline ~Covbr2HtmlGlob() { join(); }
 
 private:
     std::vector<std::thread> mThreads;
     std::atomic<int> mRet = 0;
     void threadFunc(const std::string&& file);
     void join();
-    NOCOPY(Covbr2HtmlFglob)
+    NOCOPY(Covbr2HtmlGlob)
 };
 
 #endif // _H
