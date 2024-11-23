@@ -1,14 +1,14 @@
-#include <Covbr2HtmlFglob.h>
+#include <Covbr2HtmlGlob.h>
 #include <SOM/TraceMacros.h>
 #include <iostream>
 #include <filesystem>
 
-void Covbr2HtmlFglob::process(const CONST_C_STRING item)
+void Covbr2HtmlGlob::process(const std::string& item)
 {
-    if (ok()) mThreads.push_back(std::thread(&Covbr2HtmlFglob::threadFunc, this, std::string(item)));
+    if (ok()) mThreads.push_back(std::thread(&Covbr2HtmlGlob::threadFunc, this, std::string(item)));
 }
 
-INT32 Covbr2HtmlFglob::ret()
+INT32 Covbr2HtmlGlob::ret()
 {
     join();
     if (not ok()) mRet += 1;
@@ -16,13 +16,13 @@ INT32 Covbr2HtmlFglob::ret()
     return mRet;
 }
 
-void Covbr2HtmlFglob::threadFunc(const std::string&& file)
+void Covbr2HtmlGlob::threadFunc(const std::string&& file)
 {
     TRACE_FUNC_TIME()
     if (not convert(file)) ++mRet;
 }
 
-void Covbr2HtmlFglob::join()
+void Covbr2HtmlGlob::join()
 {
     TRACE_FUNC_TIME()
     for (auto& th : mThreads) th.join();

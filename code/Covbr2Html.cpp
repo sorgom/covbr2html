@@ -89,8 +89,6 @@ bool Covbr2Html::convert(const std::string& fpath)
     static const regex reNok("( *)--&gt;([TFtf])?( .*)?");
     //  covered
     static const regex reCov("( *)(TF|tf|X)( .*)?");
-    //  extension
-    static const regex reExt("\\.\\w+$");
 
     static const std::map<const string, const CONST_C_STRING> repMap
     {
@@ -115,13 +113,15 @@ bool Covbr2Html::convert(const std::string& fpath)
 
     std::ofstream os;
     {
-        const auto opath = mOdir.empty() ? fspath(fpath).parent_path() : fspath(mOdir);
-        const auto fname = fspath(fpath).filename().string();
-        const auto ttl = repl(reExt, "", fname);
+        const auto opath =
+            mOdir.empty() ?
+                fspath(fpath).replace_extension("html") :
+                fspath(mOdir) / fspath(fpath).filename().replace_extension("html");
 
-        if (not open(os, opath / (ttl + ".html"))) return false;
+        if (not open(os, opath)) return false;
 
-        os << cTtl << ttl << cHead;
+        const auto ttl = fspath(fpath).filename().replace_extension("");
+        os << cTtl << ttl.string() << cHead;
     }
     {
         TRACE_FLOW_TIME(convert to html)

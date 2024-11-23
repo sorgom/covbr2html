@@ -63,15 +63,15 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/Covbr2Html.o
-GENERATED += $(OBJDIR)/Covbr2HtmlFglob.o
+GENERATED += $(OBJDIR)/Covbr2HtmlGlob.o
+GENERATED += $(OBJDIR)/Glob.o
 GENERATED += $(OBJDIR)/docopts.o
-GENERATED += $(OBJDIR)/fglob.o
 GENERATED += $(OBJDIR)/fio.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Covbr2Html.o
-OBJECTS += $(OBJDIR)/Covbr2HtmlFglob.o
+OBJECTS += $(OBJDIR)/Covbr2HtmlGlob.o
+OBJECTS += $(OBJDIR)/Glob.o
 OBJECTS += $(OBJDIR)/docopts.o
-OBJECTS += $(OBJDIR)/fglob.o
 OBJECTS += $(OBJDIR)/fio.o
 OBJECTS += $(OBJDIR)/main.o
 
@@ -140,16 +140,16 @@ endif
 $(OBJDIR)/Covbr2Html.o: ../code/Covbr2Html.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Covbr2HtmlFglob.o: ../code/Covbr2HtmlFglob.cpp
+$(OBJDIR)/Covbr2HtmlGlob.o: ../code/Covbr2HtmlGlob.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: ../code/main.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/docopts.o: ../submodules/somcpp/src/docopts.cpp
+$(OBJDIR)/Glob.o: ../submodules/somcpp/src/Glob.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/fglob.o: ../submodules/somcpp/src/fglob.cpp
+$(OBJDIR)/docopts.o: ../submodules/somcpp/src/docopts.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/fio.o: ../submodules/somcpp/src/fio.cpp

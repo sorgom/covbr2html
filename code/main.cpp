@@ -1,4 +1,4 @@
-#include <Covbr2HtmlFglob.h>
+#include <Covbr2HtmlGlob.h>
 #include <SOM/docopts.h>
 #define TRACE_ME
 #include <SOM/TraceMacros.h>
@@ -31,25 +31,25 @@ INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
     DocOpts opts;
     if (opts.process(cOpts, argc, argv))
     {
-        ret = 0;
         if (opts.isSet('h'))
         {
             help(argv[0]);
         }
         else
         {
-            Covbr2HtmlFglob globber;
-            globber.setHc(opts.isSet('c'));
-            globber.setFc(opts.isSet('f'));
+            Covbr2HtmlGlob proc;
+            proc.setHc(opts.isSet('c'));
+            proc.setFc(opts.isSet('f'));
             CONST_C_STRING odir = nullptr;
-            if ((not opts.getValue(odir, 'o')) or globber.setOdir(odir))
+            if ((not opts.getValue(odir, 'o')) or proc.setOdir(odir))
             {
+                Glob glob(proc, true);
                 for (auto i = 0; i < opts.argc(); ++i)
                 {
-                    fglob(opts.args()[i], globber);
+                    glob.glob(opts.args()[i]);
                 }
             }
-            ret = globber.ret();
+            ret = proc.ret();
         }
     }
     return ret;

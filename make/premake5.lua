@@ -38,7 +38,7 @@ workspace 'covbr2html'
         includedirs { '../code', somcpp .. '/include' }
         files {
             '../code/*.cpp',
-            somsrc .. 'fglob.cpp',
+            somsrc .. 'Glob.cpp',
             somsrc .. 'fio.cpp',
             somsrc .. 'docopts.cpp'
         }
