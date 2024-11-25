@@ -11,7 +11,7 @@ somsrc = somcpp .. 'src/'
 
 workspace 'covbr2html'
 
-    configurations { 'ci', 'trace_on', 'trace_all' }
+    configurations { 'ci', 'trace_on', 'trace_all', 'glob_linux', 'glob_linux_trace_all' }
     language 'C++'
     targetdir '../build'
     objdir  '../build/%{_TARGET_OS}/%{cfg.name}'
@@ -19,10 +19,10 @@ workspace 'covbr2html'
     optimize 'Speed'
     kind 'ConsoleApp'
 
-
     filter { 'action:vs*' }
         warnings 'high'
         buildoptions { buildoptions_vs }
+        defines { '_CRT_SECURE_NO_WARNINGS' }
 
     filter { 'action:gmake*' }
         buildoptions { buildoptions_gcc }
@@ -33,6 +33,12 @@ workspace 'covbr2html'
 
     filter { 'configurations:trace_all' }
         defines { 'TRACE_ALL' }
+
+    filter { 'configurations:glob_linux' }
+        defines { 'GLOB_LINUX' }
+
+    filter { 'configurations:glob_linux_trace_all' }
+        defines { 'GLOB_LINUX', 'TRACE_ALL' }
 
     project 'covbr2html'
         includedirs { '../code', somcpp .. '/include' }

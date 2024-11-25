@@ -17,6 +17,12 @@ else ifeq ($(config),trace_on)
 else ifeq ($(config),trace_all)
   covbr2html_config = trace_all
 
+else ifeq ($(config),glob_linux)
+  covbr2html_config = glob_linux
+
+else ifeq ($(config),glob_linux_trace_all)
+  covbr2html_config = glob_linux_trace_all
+
 else
   $(error "invalid configuration $(config)")
 endif
@@ -43,6 +49,8 @@ help:
 	@echo "  ci"
 	@echo "  trace_on"
 	@echo "  trace_all"
+	@echo "  glob_linux"
+	@echo "  glob_linux_trace_all"
 	@echo ""
 	@echo "TARGETS:"
 	@echo "   all (default)"

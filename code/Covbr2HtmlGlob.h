@@ -1,6 +1,6 @@
 #pragma once
-#ifndef COVBR_2_HTML_FGLOB_H
-#define COVBR_2_HTML_FGLOB_H
+#ifndef COVBR_2_HTML_GLOB_H
+#define COVBR_2_HTML_GLOB_H
 
 #include <Covbr2Html.h>
 #include <SOM/coding.h>
