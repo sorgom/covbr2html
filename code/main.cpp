@@ -7,7 +7,9 @@
 #include <iostream>
 #include <regex>
 
-const CONST_C_STRING cOpts =
+const CONST_C_STRING cHelp =
+    "\nconvert covbr text files to html\n\n"
+    "usage: ARGV0 [options] covbr files\n"
     "options:\n"
     "-o  <directory> output to directory\n"
     "-c  highlight covered items\n"
@@ -15,25 +17,16 @@ const CONST_C_STRING cOpts =
     "-h  this help\n"
 ;
 
-void help(const CONST_C_STRING arg)
-{
-    std::cout
-        << "\nconvert covbr text files to html\n\n"
-        << "usage: " << std::filesystem::path(arg).filename().string() << " [options] covbr files\n"
-        << cOpts;
-    ;
-}
-
 INT32 main(const INT32 argc, const CONST_C_STRING* const argv)
 {
     TRACE_FUNC_TIME()
     auto ret = 1;
-    DocOpts opts;
-    if (opts.process(cOpts, argc, argv))
+    DocOpts opts(cHelp);
+    if (opts.process(argc, argv))
     {
         if (opts.isSet('h'))
         {
-            help(argv[0]);
+            opts.help(argv[0]);
         }
         else
         {
