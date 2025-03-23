@@ -6,7 +6,7 @@ covbr2html/make$> make -j
 ````
 - find binary in build folder
 ````shell
-covbr2html/make$> cd ../build
+covbr2html/make$> cd ../build/linux
 covbr2html/build$> ls
 ````
 
@@ -20,10 +20,11 @@ covbr2html\make> premake5 vsNNNN
 ````
 ### build
 ````shell
-covbr2html\make> msbuild -m covbr2html.sln
+covbr2html\make> cd ../vs
+covbr2html\vs> msbuild -m covbr2html.sln
 ````
 - find binary in build folder
 ````shell
-covbr2html\make> cd ../build
-covbr2html\build> dir /B *.exe
+covbr2html\vs> cd ../build/windows
+covbr2html\build\windows> dir /B *.exe
 ````

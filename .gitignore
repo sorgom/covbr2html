@@ -8,15 +8,15 @@ tmp/
 stuff
 *.cov
 *.html
+vs
 
 # temporary ignored
-# Makefile
-# *.make
 *.sln
 *.vcxproj
 *.vcxproj.*
 .vs
 .vscode
+.obsidian
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
