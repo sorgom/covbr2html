@@ -10,11 +10,10 @@ somcpp = '../submodules/somcpp/'
 somsrc = somcpp .. 'src/'
 
 workspace 'covbr2html'
-
     configurations { 'ci', 'trace_on', 'trace_all', 'glob_linux', 'glob_linux_trace_all' }
     language 'C++'
-    targetdir '../build'
-    objdir  '../build/%{_TARGET_OS}/%{cfg.name}'
+    targetdir '../build/%{_TARGET_OS}'
+    objdir  '../build/%{_TARGET_OS}'
     defines { 'NDEBUG' }
     optimize 'Speed'
     kind 'ConsoleApp'
@@ -23,6 +22,7 @@ workspace 'covbr2html'
         warnings 'high'
         buildoptions { buildoptions_vs }
         defines { '_CRT_SECURE_NO_WARNINGS' }
+        location '../vs'
 
     filter { 'action:gmake*' }
         buildoptions { buildoptions_gcc }

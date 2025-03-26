@@ -4,7 +4,7 @@
 # availabilty of python
 py=$(which py || which python || which python3)
 if [[ -z $py ]]
-then 
+then
   echo "No python found"
   exit 0
 fi
@@ -15,22 +15,22 @@ cd $(git rev-parse --show-toplevel)
 # path to sompy python scripts
 sompy=$(pwd)/submodules/sompy/somutil
 
-# files regarded as text files to be cleaned
-txts=
-# extensions of text files sorted by likeliness
-xtxt="h cpp cmd py md lua"
+# files to skip
+skips="*/Makefile */*.make"
+
+txts=()
 
 for file in $(git diff-index --cached --name-only HEAD); do
-  if [[ -f $file ]]
-  then
-    for ext in $xtxt; do
-      if [[ $file == *.$ext ]]; then txts="$txts $file"; break; fi
+  if [ -f $file ]; then
+    ok=true
+    for s in $skips; do
+      if [[ $file == $s ]]; then ok=false; break; fi
     done
+    if $ok; then txts+=($file); fi
   fi
 done
 
-if [[ -n $txts ]]; then
-  echo cleaning text files
-  $py $sompy/cleanTxt.py -l $txts
-fi
-for file in $txts; do git add $file; done
+echo txt: ${#txts[@]}
+done=$($py $sompy/cleanTxt.py -le ${txts[@]})
+
+for file in $done; do git add $file; done
