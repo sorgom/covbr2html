@@ -15,10 +15,19 @@ cd $(git rev-parse --show-toplevel)
 # path to sompy python scripts
 sompy=$(pwd)/submodules/sompy/somutil
 
+# files to skip
+skips="*/Makefile */*.make"
+
 txts=()
 
 for file in $(git diff-index --cached --name-only HEAD); do
-  if [ -f $file ]; then txts+=($file); fi
+  if [ -f $file ]; then
+    ok=true
+    for s in $skips; do
+      if [[ $file == $s ]]; then ok=false; break; fi
+    done
+    if $ok; then txts+=($file); fi
+  fi
 done
 
 echo txt: ${#txts[@]}

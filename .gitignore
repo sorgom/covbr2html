@@ -9,6 +9,7 @@ stuff
 *.cov
 *.html
 vs
+lab.make
 
 # temporary ignored
 *.sln

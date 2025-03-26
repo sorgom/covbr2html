@@ -29,32 +29,32 @@ endif
 
 PROJECTS := covbr2html
 
-.PHONY: all clean help $(PROJECTS)
+.PHONY: all clean help $(PROJECTS) 
 
 all: $(PROJECTS)
 
 covbr2html:
 ifneq (,$(covbr2html_config))
-    @echo "==== Building covbr2html ($(covbr2html_config)) ===="
-    @${MAKE} --no-print-directory -C . -f covbr2html.make config=$(covbr2html_config)
+	@echo "==== Building covbr2html ($(covbr2html_config)) ===="
+	@${MAKE} --no-print-directory -C . -f covbr2html.make config=$(covbr2html_config)
 endif
 
 clean:
-    @${MAKE} --no-print-directory -C . -f covbr2html.make clean
+	@${MAKE} --no-print-directory -C . -f covbr2html.make clean
 
 help:
-    @echo "Usage: make [config=name] [target]"
-    @echo ""
-    @echo "CONFIGURATIONS:"
-    @echo "  ci"
-    @echo "  trace_on"
-    @echo "  trace_all"
-    @echo "  glob_linux"
-    @echo "  glob_linux_trace_all"
-    @echo ""
-    @echo "TARGETS:"
-    @echo "   all (default)"
-    @echo "   clean"
-    @echo "   covbr2html"
-    @echo ""
-    @echo "For more information, see https://github.com/premake/premake-core/wiki"
+	@echo "Usage: make [config=name] [target]"
+	@echo ""
+	@echo "CONFIGURATIONS:"
+	@echo "  ci"
+	@echo "  trace_on"
+	@echo "  trace_all"
+	@echo "  glob_linux"
+	@echo "  glob_linux_trace_all"
+	@echo ""
+	@echo "TARGETS:"
+	@echo "   all (default)"
+	@echo "   clean"
+	@echo "   covbr2html"
+	@echo ""
+	@echo "For more information, see https://github.com/premake/premake-core/wiki"
